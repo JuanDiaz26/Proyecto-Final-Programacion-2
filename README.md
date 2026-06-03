@@ -29,7 +29,8 @@ borran sus empleados y, de cada empleado, sus asistencias.
 ### Stack utilizado
 
 - **HTML5** para la estructura de las páginas.
-- **CSS con Bootstrap 5** (por CDN) para los estilos, sin escribir CSS a mano.
+- **CSS con Bootstrap 5** (por CDN) como base, más un **tema propio** (`css/styles.css`) que
+  le da el aspecto moderno y claro: tarjetas, avatares con iniciales y colores por estado.
 - **JavaScript puro (vanilla)** — sin React, sin Vue, sin frameworks.
 - **Axios** (por CDN) para hacer las peticiones HTTP a la API.
 - **json-server** como **API REST fake**: convierte el archivo `db.json` en una API real
@@ -38,7 +39,7 @@ borran sus empleados y, de cada empleado, sus asistencias.
 ### Estructura de archivos
 
 ```
-Proyecto Final - Ismael/
+Proyecto Final - Programacion 2/
 ├── index.html          → CRUD de Departamentos (página de inicio)
 ├── empleados.html      → CRUD de Empleados (del departamento elegido)
 ├── asistencias.html    → CRUD de Asistencias (del empleado elegido)
@@ -141,33 +142,38 @@ departamentos.forEach((depto) => {
 función que lo dibuja. Es el bucle que arma la lista.
 
 #### `renderizarDepartamento(depto)` — RENDERIZAR
-Crea en el DOM la tarjeta de **un** departamento.
+Crea en el DOM la tarjeta (`.tile`) de **un** departamento: avatar con iniciales, nombre,
+responsable, el conteo de empleados y los botones.
 
 ```js
-const col = document.createElement("div");
-col.className = "col-md-4";
+const avatar = document.createElement("div");
+avatar.className = "avatar";
+avatar.textContent = iniciales(depto.nombre);
+avatar.style.background = gradienteAvatar(depto.nombre);
 ```
-**[FÁCIL]** `createElement` crea una etiqueta HTML desde JS y le ponemos clases de Bootstrap.
+**[MEDIA]** `createElement` crea la etiqueta desde JS; `textContent` le pone las iniciales y
+`style.background` el color. Las iniciales y el color salen de dos funciones auxiliares (más abajo).
 
 ```js
 verBtn.addEventListener("click", () => verEmpleados(depto.id));
 ```
-**[MEDIA]** Le asignamos al botón qué hacer cuando se hace clic. Usamos una función flecha
-para poder **pasarle el `depto.id`** a `verEmpleados`.
+**[MEDIA]** Le asignamos al botón qué hacer al hacer clic. Usamos una función flecha para
+poder **pasarle el `depto.id`** a `verEmpleados`.
 
 ```js
-body.appendChild(titulo);
-card.appendChild(body);
-listaDepartamentos.appendChild(col);
+tile.appendChild(head);
+tile.appendChild(body);
+listaDepartamentos.appendChild(tile);
 ```
-**[FÁCIL]** `appendChild` "cuelga" un elemento dentro de otro, armando el árbol del DOM.
+**[FÁCIL]** `appendChild` "cuelga" cada elemento dentro de otro, armando el árbol del DOM.
 
 ```js
 const total = await contarEmpleados(depto.id);
-cantidad.textContent = `Empleados: ${total}`;
+cantidad.textContent = total === 1 ? "1 empleado" : `${total} empleados`;
 ```
-**[DIFÍCIL]** La tarjeta ya se dibujó; ahora pedimos (aparte) cuántos empleados tiene y
-completamos el cartelito. Lo hacemos al final para no alterar el orden de las tarjetas.
+**[DIFÍCIL]** La tarjeta ya se dibujó; recién ahí pedimos cuántos empleados tiene y completamos
+el cartelito (al final, para no alterar el orden). El **condicional** elige singular
+("1 empleado") o plural ("3 empleados").
 
 #### `contarEmpleados(id)` — conteo de empleados por departamento
 ```js
@@ -228,6 +234,28 @@ window.location.href = "empleados.html";
 **[MEDIA]** Guardamos el id en **`localStorage`** (memoria del navegador que sobrevive al
 cambio de página) y navegamos. Así pasamos el dato de una página a otra **sin query strings**.
 
+#### `iniciales(nombre)` y `gradienteAvatar(nombre)` — AUXILIARES DEL AVATAR
+```js
+function iniciales(nombre) {
+  const partes = nombre.trim().split(" ");
+  const primera = partes[0][0];
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
+  return (primera + ultima).toUpperCase();
+}
+```
+**[MEDIA]** Devuelve las iniciales de un nombre. `split(" ")` parte el texto en palabras, toma
+la primera letra de la primera y de la última (`"Laura Martínez"` → `"LM"`) y las pasa a
+mayúscula con `toUpperCase()`.
+```js
+function gradienteAvatar(nombre) {
+  const indice = nombre.charCodeAt(0) % GRADIENTES.length;
+  return GRADIENTES[indice];
+}
+```
+**[DIFÍCIL]** Elige un color fijo para el avatar según el nombre. `charCodeAt(0)` toma el
+código de la primera letra y con `%` (resto de la división) obtiene un índice válido del
+array `GRADIENTES`. Mismo nombre → siempre el mismo color.
+
 ---
 
 ### Archivo `js/empleados.js`
@@ -262,8 +290,9 @@ respuesta.data.forEach((empleado) => renderizarEmpleado(empleado));
 `forEach` para dibujarlos.
 
 #### `renderizarEmpleado(empleado)` — RENDERIZAR
-Igual que en departamentos: crea la tarjeta con `createElement`/`appendChild`, muestra
-nombre, cargo y fecha de ingreso, y arma los botones con `addEventListener`. **[FÁCIL/MEDIA]**
+Igual que en departamentos: crea la tarjeta (`.tile`) con `createElement`/`appendChild`, con
+su **avatar de iniciales** (usando `iniciales()` y `gradienteAvatar()`), el nombre, el cargo,
+la fecha de ingreso y los botones con `addEventListener`. **[FÁCIL/MEDIA]**
 
 #### `crearEmpleado(evento)` — CREAR (POST)
 ```js
@@ -330,6 +359,17 @@ asistencias.forEach((asistencia) => renderizarAsistencia(asistencia));
 **[MEDIA]** Recorre las asistencias **ya ordenadas** y las dibuja.
 
 #### `renderizarAsistencia(asistencia)` — RENDERIZAR
+Arma una fila (`.row-item`) con un ícono de calendario coloreado según el estado, la fecha,
+el selector de estado y el botón de eliminar.
+```js
+const claseColor = "is-" + asistencia.estado.toLowerCase();
+const icono = document.createElement("div");
+icono.className = "row-icon " + claseColor;
+icono.innerHTML = ICONO_CALENDARIO;
+```
+**[MEDIA]** Armamos el nombre de la clase de color desde el estado (`"Presente"` →
+`"is-presente"`) y se la sumamos al ícono; el CSS lo pinta verde / rojo / ámbar. `innerHTML`
+mete el dibujo SVG del calendario dentro del recuadro.
 ```js
 ESTADOS.forEach((estado) => {
   const opcion = document.createElement("option");
@@ -386,6 +426,9 @@ cascada).
 | Conteo por departamento | `contarEmpleados()` con `.length` |
 | Eliminación en cascada | `eliminarDepartamento()` y `eliminarEmpleado()` |
 | Ordenamiento | `asistencias.sort((a, b) => b.id - a.id)` |
+| Búsqueda / validación | `find` en `editarEmpleado()` (valida el departamento elegido) |
+| Avatares (iniciales + color) | `iniciales()` y `gradienteAvatar()` (`split`, `charCodeAt`, `%`) |
+| Condicional singular/plural | conteo en `renderizarDepartamento()` |
 
 ---
 
@@ -409,19 +452,33 @@ El temario se reparte entre los 4 integrantes. Cada uno expone su **teoría** y 
 - Qué es el **DOM** (el árbol de elementos de la página que JS puede modificar).
 - **Eventos** y `addEventListener` (click, submit, change).
 - **Render dinámico**: crear contenido desde JS con `createElement`, `appendChild`,
-  `textContent` e `innerHTML`. Explicar que el HTML solo tiene contenedores vacíos y que
-  **todo lo llena el JavaScript**.
+  `textContent`, `innerHTML` y `style`.
 - **Navegación entre páginas con `localStorage`** (en vez de query strings).
 
-*Cómo presentarlo:* abrir `index.html`, mostrar que el `<div id="listaDepartamentos">` está
-vacío en el HTML y que las tarjetas aparecen porque las crea el JS. Hacer clic en "Ver
-empleados" y mostrar en las DevTools cómo se guardó el `departamentoId` en localStorage.
+**Qué se hizo y por qué así:**
+- El HTML **solo tiene contenedores vacíos** (`<div id="listaDepartamentos">`, etc.) y
+  **todo el contenido lo crea el JavaScript**. *¿Por qué?* La consigna pide manipular el DOM
+  dinámicamente y que los datos vengan de la API, no escritos a mano en el HTML.
+- La navegación se hace con **botones creados/asignados por JS + `localStorage`**, no con la
+  URL. *¿Por qué localStorage?* Hay que pasar el id elegido de una página a la siguiente, y la
+  consigna pide explícitamente usar localStorage en lugar de query strings.
+- La barra de arriba (*Departamentos › Empleados › Asistencias*) es **solo un indicador
+  visual, no navega**. *¿Por qué?* Empleados necesita un departamento elegido y Asistencias un
+  empleado elegido; sin ese id la página no sabría qué mostrar.
+- Los **avatares con iniciales** se dibujan con `createElement` + `style.background`. *¿Por
+  qué?* Para que la interfaz no dependa de imágenes externas: el "ícono" es puro DOM + CSS.
 
-**Prácticas / código a mostrar:**
-- `renderizarDepartamento()` y `renderizarEmpleado()` (`createElement` + `appendChild`).
+**Código concreto a mostrar:**
+- `renderizarDepartamento()`, `renderizarEmpleado()`, `renderizarAsistencia()`
+  (`createElement` + `appendChild` + `textContent` + `style`).
 - `verEmpleados()` y `verAsistencias()` (`localStorage.setItem` + `window.location.href`).
-- Los `addEventListener` de los botones "Volver", "Ver empleados" y "Ver asistencias".
-- `document.addEventListener("DOMContentLoaded", ...)` en los tres archivos.
+- Los `addEventListener` de los botones "Volver"/"Ver…", del **submit** del formulario y del
+  **change** del selector de estado.
+- `ICONO_CALENDARIO` insertado con `innerHTML`, y `document.addEventListener("DOMContentLoaded", …)`.
+
+*Cómo presentarlo:* abrir `index.html`, mostrar que el `<div id="listaDepartamentos">` está
+vacío y que las tarjetas aparecen porque las crea el JS. Hacer clic en "Ver empleados" y
+mostrar en DevTools → Application → Local Storage cómo se guardó el `departamentoId`.
 
 ---
 
@@ -434,15 +491,27 @@ empleados" y mostrar en las DevTools cómo se guardó el `departamentoId` en loc
 - **Promesas** y por qué usamos `async/await` (esperar la respuesta sin congelar la página).
 - Por qué leemos siempre desde **`response.data`**.
 
+**Qué se hizo y por qué así:**
+- **Toda** la comunicación de datos pasa por **Axios** apuntando a `http://localhost:3000`
+  (nada de `fetch`). *¿Por qué?* Es lo que pide la consigna y centraliza las llamadas.
+- Se usa **`async/await`** en vez de `.then()`. *¿Por qué?* El código se lee de arriba hacia
+  abajo, como si fuera paso a paso, y es mucho más fácil de entender y explicar.
+- Siempre se lee **`response.data`** sin tocarla a mano. *¿Por qué?* Axios ya convierte el
+  JSON en objeto/array; manipularla sería rehacer lo que la librería ya hizo.
+- Se usan los **filtros de json-server** (`?departamentoId=`, `?empleadoId=`). *¿Por qué?*
+  Para traer del servidor **solo lo necesario**, en vez de bajar todo y filtrar en el navegador.
+- Se eligió **json-server 0.17.4**. *¿Por qué?* Da `id` numéricos e incrementales (1, 2, 3…) y
+  soporta `--watch`; la versión nueva rompe el orden de asistencias con ids aleatorios.
+
+**Código concreto a mostrar:**
+- `cargarDepartamentos()` / `cargarEmpleados()` / `cargarAsistencias()` (`axios.get` + `response.data`).
+- `crearDepartamento()` / `crearEmpleado()` / `crearAsistencia()` (`axios.post`).
+- `editarAsistencia()` / `editarDepartamento()` / `editarEmpleado()` (`axios.patch`).
+- `eliminarAsistencia()` (`axios.delete`).
+- `contarEmpleados()` y `editarEmpleado()` con el **filtro**/lectura extra de la API.
+
 *Cómo presentarlo:* levantar `json-server` en vivo, abrir `http://localhost:3000/empleados`
 para mostrar la API, y explicar el viaje pedido → respuesta → `response.data` → pantalla.
-
-**Prácticas / código a mostrar:**
-- `cargarDepartamentos()` (`axios.get` + `response.data`).
-- `crearDepartamento()` / `crearEmpleado()` (`axios.post`).
-- `editarAsistencia()` (`axios.patch`).
-- `eliminarAsistencia()` (`axios.delete`).
-- `contarEmpleados()` con el **filtro** `?departamentoId=ID`.
 
 ---
 
@@ -451,18 +520,31 @@ para mostrar la API, y explicar el viaje pedido → respuesta → `response.data
 **Teoría a exponer:**
 - Concepto de **CRUD completo** (Crear, Leer, Actualizar, Eliminar) sobre cada entidad.
 - En detalle **Actualizar (`patch`)** y **Eliminar (`delete`)**.
-- **Eliminación en cascada**: qué es, por qué hace falta (json-server no borra los hijos
-  solo) y cómo respeta la relación entre las tablas.
-- **Condicionales y validaciones** (`if`, `return`, `confirm`).
+- **Eliminación en cascada** y **condicionales/validaciones** (`if`, `return`, `confirm`).
 
-*Cómo presentarlo:* borrar un departamento en vivo y mostrar que también desaparecen sus
-empleados y asistencias. Intentar editar dejando un campo vacío para mostrar la validación.
+**Qué se hizo y por qué así:**
+- Cada entidad tiene las **4 operaciones**, en **funciones separadas por responsabilidad**
+  (una para crear, una para renderizar, una para editar, una para eliminar). *¿Por qué?* Lo
+  pide la consigna y deja el código ordenado y fácil de explicar.
+- **Eliminación en cascada hecha a mano**: al borrar, primero los hijos y al final el padre
+  (asistencias → empleados → departamento). *¿Por qué?* json-server **no** borra los hijos
+  solos; si no lo hiciéramos quedarían empleados y asistencias **huérfanos** apuntando a algo
+  que ya no existe. Se usa `for...of` con `await` para borrarlos **en orden**.
+- **Validaciones con `if`/`return` y `confirm`**. *¿Por qué?* El `confirm` evita borrados
+  accidentales; el `if (!dato) return` evita guardar campos vacíos.
+- `editarEmpleado()` permite **reasignar el departamento** y valida con `find` que el id
+  exista. *¿Por qué desaparece de la lista?* Al cambiarlo de área deja de pertenecer al
+  departamento que se está viendo: se respeta la relación entre las tablas.
 
-**Prácticas / código a mostrar:**
-- `editarDepartamento()` / `editarEmpleado()` (validación con `if` + `axios.patch`).
+**Código concreto a mostrar:**
 - `eliminarDepartamento()` (cascada completa: asistencias → empleados → departamento).
 - `eliminarEmpleado()` (cascada: asistencias → empleado).
-- Los `confirm(...)` y los `if (!dato) { ... return; }`.
+- `editarDepartamento()` / `editarEmpleado()` (validación con `if` + `find` + `axios.patch`).
+- Los `confirm(...)`, los `if (!dato) { … return; }` y el condicional singular/plural del conteo.
+
+*Cómo presentarlo:* borrar un departamento en vivo y mostrar (en las URLs de la API) que
+también desaparecen sus empleados y asistencias. Intentar editar dejando un campo vacío para
+mostrar la validación, y reasignar un empleado a otro departamento.
 
 ---
 
@@ -472,16 +554,30 @@ empleados y asistencias. Intentar editar dejando un campo vacío para mostrar la
 - **Estructura de datos**: cómo está armado `db.json` (objetos con propiedades) y cómo se
   relacionan por `id` / `departamentoId` / `empleadoId`.
 - **Arrays** y **objetos** en JavaScript.
-- **Métodos de array**: `forEach` (recorrer y dibujar), `sort` (ordenar) y `.length` (contar).
-- El **bucle `forEach`** para renderizar listas y el **ordenamiento de asistencias**.
+- **Métodos de array**: `forEach` (recorrer), `sort` (ordenar), `find` (buscar) y `.length`
+  (contar); además `split` y `charCodeAt` en las funciones del avatar.
+
+**Qué se hizo y por qué así:**
+- `db.json` modela **tres "tablas"** (departamentos, empleados, asistencias) relacionadas por
+  id. *¿Por qué así?* Es un modelo **padre → hijo**: el empleado guarda el `departamentoId` y
+  la asistencia el `empleadoId`, igual que una base de datos real.
+- Los objetos `nuevo`/`nueva` se **arman en JS** y se mandan con `post`; el `id` lo pone la
+  API. *¿Por qué?* Para no inventar ids a mano y evitar repetidos.
+- Se usa **`forEach`** para dibujar todas las listas. *¿Por qué?* La consigna pide al menos un
+  bucle, y `forEach` es el más claro para "recorrer y dibujar cada elemento".
+- Las asistencias se ordenan con **`sort` por `id` de mayor a menor**. *¿Por qué por id y no
+  por fecha?* El `id` más alto siempre es el más nuevo, así no dependemos del formato de la
+  fecha (puede venir como `2025-06-12` o como `3/6/2026`).
+- **`find`** valida el departamento elegido, **`.length`** cuenta empleados, y `split`/
+  `charCodeAt`/`%` generan las iniciales y el color del avatar.
+
+**Código concreto a mostrar:**
+- La estructura de `db.json` (las tres "tablas" y sus relaciones).
+- El objeto `nuevo`/`nueva` que se arma en `crearEmpleado()` / `crearAsistencia()`.
+- Los `forEach` de `cargarDepartamentos()`, `cargarEmpleados()` y `cargarAsistencias()`.
+- `asistencias.sort((a, b) => b.id - a.id)` (ordenamiento) y `find()` en `editarEmpleado()`.
+- `respuesta.data.length` en `contarEmpleados()` y las auxiliares `iniciales()` / `gradienteAvatar()`.
 
 *Cómo presentarlo:* abrir `db.json`, mostrar la forma de un objeto departamento/empleado/
-asistencia. Después abrir la página de asistencias y mostrar que aparecen ordenadas de la
-más reciente a la más antigua, explicando el `sort`.
-
-**Prácticas / código a mostrar:**
-- La estructura de `db.json` (las tres "tablas" y sus relaciones).
-- El objeto `nuevo` que se arma en `crearEmpleado()` / `crearAsistencia()`.
-- Los `forEach` de `cargarDepartamentos()`, `cargarEmpleados()` y `cargarAsistencias()`.
-- `asistencias.sort((a, b) => b.id - a.id)` (ordenamiento).
-- `respuesta.data.length` en `contarEmpleados()`.
+asistencia y sus relaciones. Después abrir la página de asistencias y mostrar que aparecen
+ordenadas de la más reciente a la más antigua, explicando el `sort`.
