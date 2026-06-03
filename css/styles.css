@@ -1,0 +1,310 @@
+/* ============================================================
+   TEMA VISUAL DEL PANEL RRHH
+   Capa de diseño propia (dark, estilo moderno) que se carga
+   DESPUÉS de Bootstrap para darle un aspecto profesional.
+   ============================================================ */
+
+/* Paleta y variables de diseño (se usan en todo el archivo) */
+:root {
+  color-scheme: dark; /* hace que inputs/date/scroll usen estilo oscuro */
+
+  --bg: #0b0d12;
+  --bg-elev: #11141b;
+  --surface: #151922;
+  --surface-2: #1b202b;
+  --border: #232a36;
+  --border-strong: #2e3744;
+
+  --text: #e6e9ef;
+  --text-muted: #9aa4b2;
+  --text-dim: #6b7484;
+
+  --accent: #7c8cff;
+  --accent-hover: #95a2ff;
+  --accent-soft: rgba(124, 140, 255, 0.12);
+
+  --green: #3fb950;
+  --green-soft: rgba(63, 185, 80, 0.14);
+  --red: #f85149;
+  --red-soft: rgba(248, 81, 73, 0.14);
+  --amber: #d6a334;
+  --amber-soft: rgba(214, 163, 52, 0.16);
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Base */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Resplandor sutil en la parte superior (detalle "moderno") */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(1100px 520px at 50% -15%, rgba(124, 140, 255, 0.12), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ancho del contenido (sobreescribe el container de Bootstrap) */
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ---------- Barra superior ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(11, 13, 18, 0.72);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 62px;
+  gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #b06eff);
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #0b0d12;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-weight: 650; font-size: 0.98rem; }
+.brand-sub { color: var(--text-dim); font-size: 0.76rem; }
+
+/* Indicador de pasos (Departamentos › Empleados › Asistencias) */
+.steps { display: flex; align-items: center; gap: 10px; }
+.step {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.step.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.step-sep { color: var(--text-dim); font-size: 0.8rem; }
+
+/* ---------- Encabezado de cada página ---------- */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 30px 0 22px;
+}
+.page-title { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.page-subtitle { color: var(--text-muted); font-size: 0.94rem; margin: 6px 0 0; }
+
+/* Botón "Volver" */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 22px;
+  padding: 0;
+}
+.back:hover { color: var(--text); }
+
+/* ---------- Formulario (barra de creación) ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 26px;
+}
+.field {
+  flex: 1;
+  min-width: 170px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field::placeholder { color: var(--text-dim); }
+.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* ---------- Botones ---------- */
+.button {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+}
+.button:active { transform: translateY(1px); }
+.button.primary { background: var(--accent); color: #0b0d12; }
+.button.primary:hover { background: var(--accent-hover); }
+.button.ghost { background: transparent; border-color: var(--border-strong); color: var(--text); }
+.button.ghost:hover { background: var(--surface-2); border-color: #3a4453; }
+.button.danger { background: transparent; border-color: rgba(248, 81, 73, 0.4); color: var(--red); }
+.button.danger:hover { background: var(--red-soft); }
+.button.small { padding: 7px 11px; font-size: 0.82rem; }
+
+/* ---------- Grilla de tarjetas (departamentos / empleados) ---------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.tile:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+.tile-title { font-size: 1.08rem; font-weight: 650; margin: 0; }
+.tile-meta { display: flex; flex-direction: column; gap: 4px; color: var(--text-muted); font-size: 0.88rem; }
+.tile-meta .mono { font-family: var(--mono); font-size: 0.82rem; color: var(--text-dim); }
+.tile-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+
+/* Cartelito con la cantidad de empleados */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(124, 140, 255, 0.25);
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+.chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---------- Lista de asistencias (filas) ---------- */
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  transition: border-color 0.15s;
+}
+.row-item:hover { border-color: var(--border-strong); }
+.row-left { display: flex; align-items: center; gap: 12px; }
+.row-date { font-family: var(--mono); color: var(--text-muted); font-size: 0.9rem; }
+.row-right { display: flex; align-items: center; gap: 10px; }
+
+/* Punto de color según el estado */
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-dim); }
+
+/* Selector de estado (pill de color) */
+.status {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 7px 30px 7px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa4b2' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.status option { background: var(--surface); color: var(--text); }
+
+/* Colores por estado (se aplican al punto y al selector) */
+.is-presente { color: var(--green); }
+.status.is-presente { border-color: rgba(63, 185, 80, 0.45); background-color: var(--green-soft); }
+.status-dot.is-presente { background: var(--green); }
+
+.is-ausente { color: var(--red); }
+.status.is-ausente { border-color: rgba(248, 81, 73, 0.45); background-color: var(--red-soft); }
+.status-dot.is-ausente { background: var(--red); }
+
+.is-tardanza { color: var(--amber); }
+.status.is-tardanza { border-color: rgba(214, 163, 52, 0.45); background-color: var(--amber-soft); }
+.status-dot.is-tardanza { background: var(--amber); }
+
+/* ---------- Estado vacío ---------- */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 46px 20px;
+  color: var(--text-dim);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+  .steps { display: none; }
+  .page-head { flex-direction: column; align-items: flex-start; }
+}
