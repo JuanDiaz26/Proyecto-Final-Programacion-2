@@ -1,138 +1,27 @@
 {
   "departamentos": [
-    {
-      "id": 1,
-      "nombre": "Sistemas",
-      "responsable": "Ing. Carlos Pérez"
-    },
-    {
-      "id": 2,
-      "nombre": "Recursos Humanos",
-      "responsable": "Lic. Ana Gómez"
-    },
-    {
-      "id": 3,
-      "nombre": "Ventas",
-      "responsable": "Sr. Diego Fernández"
-    }
+    { "id": 1, "nombre": "Sistemas", "responsable": "Ing. Carlos Pérez" },
+    { "id": 2, "nombre": "Recursos Humanos", "responsable": "Lic. Ana Gómez" },
+    { "id": 3, "nombre": "Ventas", "responsable": "Sr. Diego Fernández" }
   ],
   "empleados": [
-    {
-      "id": 1,
-      "departamentoId": 1,
-      "nombre": "Laura Martínez",
-      "cargo": "Desarrolladora",
-      "fechaIngreso": "2024-03-01"
-    },
-    {
-      "id": 2,
-      "departamentoId": 1,
-      "nombre": "Pedro Sánchez",
-      "cargo": "Analista QA",
-      "fechaIngreso": "2023-11-15"
-    },
-    {
-      "id": 3,
-      "departamentoId": 2,
-      "nombre": "María López",
-      "cargo": "Reclutadora",
-      "fechaIngreso": "2022-07-20"
-    },
-    {
-      "id": 4,
-      "departamentoId": 2,
-      "nombre": "Jorge Ruiz",
-      "cargo": "Asistente de RRHH",
-      "fechaIngreso": "2025-01-10"
-    },
-    {
-      "id": 5,
-      "departamentoId": 3,
-      "nombre": "Sofía Díaz",
-      "cargo": "Vendedora",
-      "fechaIngreso": "2024-09-05"
-    },
-    {
-      "id": 6,
-      "departamentoId": 3,
-      "nombre": "Martín Torres",
-      "cargo": "Supervisor de Ventas",
-      "fechaIngreso": "2021-04-12"
-    },
-    {
-      "nombre": "Ana Gil",
-      "cargo": "Pasante",
-      "fechaIngreso": "2026-05-05",
-      "departamentoId": 1,
-      "id": 7
-    }
+    { "id": 1, "departamentoId": 1, "nombre": "Laura Martínez", "cargo": "Desarrolladora", "fechaIngreso": "2024-03-01" },
+    { "id": 2, "departamentoId": 1, "nombre": "Pedro Sánchez", "cargo": "Analista QA", "fechaIngreso": "2023-11-15" },
+    { "id": 3, "departamentoId": 2, "nombre": "María López", "cargo": "Reclutadora", "fechaIngreso": "2022-07-20" },
+    { "id": 4, "departamentoId": 2, "nombre": "Jorge Ruiz", "cargo": "Asistente de RRHH", "fechaIngreso": "2025-01-10" },
+    { "id": 5, "departamentoId": 3, "nombre": "Sofía Díaz", "cargo": "Vendedora", "fechaIngreso": "2024-09-05" },
+    { "id": 6, "departamentoId": 3, "nombre": "Martín Torres", "cargo": "Supervisor de Ventas", "fechaIngreso": "2021-04-12" }
   ],
   "asistencias": [
-    {
-      "id": 1,
-      "empleadoId": 1,
-      "fecha": "2025-06-10",
-      "estado": "Presente"
-    },
-    {
-      "id": 2,
-      "empleadoId": 1,
-      "fecha": "2025-06-11",
-      "estado": "Tardanza"
-    },
-    {
-      "id": 3,
-      "empleadoId": 1,
-      "fecha": "2025-06-12",
-      "estado": "Ausente"
-    },
-    {
-      "id": 4,
-      "empleadoId": 2,
-      "fecha": "2025-06-10",
-      "estado": "Ausente"
-    },
-    {
-      "id": 5,
-      "empleadoId": 2,
-      "fecha": "2025-06-11",
-      "estado": "Presente"
-    },
-    {
-      "id": 6,
-      "empleadoId": 3,
-      "fecha": "2025-06-10",
-      "estado": "Presente"
-    },
-    {
-      "id": 7,
-      "empleadoId": 3,
-      "fecha": "2025-06-12",
-      "estado": "Presente"
-    },
-    {
-      "id": 8,
-      "empleadoId": 5,
-      "fecha": "2025-06-11",
-      "estado": "Tardanza"
-    },
-    {
-      "id": 9,
-      "empleadoId": 6,
-      "fecha": "2025-06-10",
-      "estado": "Presente"
-    },
-    {
-      "id": 10,
-      "empleadoId": 6,
-      "fecha": "2025-06-12",
-      "estado": "Ausente"
-    },
-    {
-      "empleadoId": 1,
-      "fecha": "3/6/2026",
-      "estado": "Presente",
-      "id": 11
-    }
+    { "id": 1, "empleadoId": 1, "fecha": "2025-06-10", "estado": "Presente" },
+    { "id": 2, "empleadoId": 1, "fecha": "2025-06-11", "estado": "Tardanza" },
+    { "id": 3, "empleadoId": 1, "fecha": "2025-06-12", "estado": "Presente" },
+    { "id": 4, "empleadoId": 2, "fecha": "2025-06-10", "estado": "Ausente" },
+    { "id": 5, "empleadoId": 2, "fecha": "2025-06-11", "estado": "Presente" },
+    { "id": 6, "empleadoId": 3, "fecha": "2025-06-10", "estado": "Presente" },
+    { "id": 7, "empleadoId": 3, "fecha": "2025-06-12", "estado": "Presente" },
+    { "id": 8, "empleadoId": 5, "fecha": "2025-06-11", "estado": "Tardanza" },
+    { "id": 9, "empleadoId": 6, "fecha": "2025-06-10", "estado": "Presente" },
+    { "id": 10, "empleadoId": 6, "fecha": "2025-06-12", "estado": "Ausente" }
   ]
 }
