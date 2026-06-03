@@ -49,31 +49,45 @@ async function renderizarDepartamento(depto) {
   const tile = document.createElement("div");
   tile.className = "tile";
 
-  // Nombre del departamento
+  // --- Encabezado: avatar con iniciales + nombre + responsable ---
+  const head = document.createElement("div");
+  head.className = "tile-head";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = iniciales(depto.nombre);
+  avatar.style.background = gradienteAvatar(depto.nombre);
+
+  const headtext = document.createElement("div");
+  headtext.className = "tile-headtext";
   const titulo = document.createElement("h3");
   titulo.className = "tile-title";
   titulo.textContent = depto.nombre;
-
-  // Datos (responsable)
-  const meta = document.createElement("div");
-  meta.className = "tile-meta";
   const responsable = document.createElement("span");
-  responsable.textContent = `Responsable: ${depto.responsable}`;
-  meta.appendChild(responsable);
+  responsable.className = "tile-sub";
+  responsable.textContent = depto.responsable;
+  headtext.appendChild(titulo);
+  headtext.appendChild(responsable);
 
-  // Cantidad de empleados (se completa después: es una consulta aparte)
+  head.appendChild(avatar);
+  head.appendChild(headtext);
+
+  // --- Cuerpo: chip con la cantidad de empleados (se completa luego) ---
+  const body = document.createElement("div");
+  body.className = "tile-body";
   const cantidad = document.createElement("span");
   cantidad.className = "chip";
-  cantidad.textContent = "Empleados: …";
+  cantidad.textContent = "…";
+  body.appendChild(cantidad);
 
-  // Acciones
+  // --- Acciones ---
   const acciones = document.createElement("div");
   acciones.className = "tile-actions";
 
   // Botón "Ver empleados": guarda el id y navega a empleados.html
   const verBtn = document.createElement("button");
   verBtn.className = "button primary small";
-  verBtn.textContent = "Ver empleados";
+  verBtn.textContent = "Ver empleados →";
   verBtn.addEventListener("click", () => verEmpleados(depto.id));
 
   // Botón "Editar"
@@ -92,15 +106,15 @@ async function renderizarDepartamento(depto) {
   acciones.appendChild(verBtn);
   acciones.appendChild(editarBtn);
   acciones.appendChild(eliminarBtn);
-  tile.appendChild(titulo);
-  tile.appendChild(meta);
-  tile.appendChild(cantidad);
+  tile.appendChild(head);
+  tile.appendChild(body);
   tile.appendChild(acciones);
   listaDepartamentos.appendChild(tile);
 
-  // Ya está dibujada la tarjeta; ahora pedimos el conteo y lo mostramos
+  // Ya está dibujada la tarjeta; ahora pedimos el conteo y lo mostramos.
+  // Mostramos "1 empleado" o "X empleados" según corresponda.
   const total = await contarEmpleados(depto.id);
-  cantidad.textContent = `Empleados: ${total}`;
+  cantidad.textContent = total === 1 ? "1 empleado" : `${total} empleados`;
 }
 
 // ------------------------------------------------------------
@@ -188,4 +202,32 @@ async function eliminarDepartamento(id) {
 function verEmpleados(id) {
   localStorage.setItem("departamentoId", id);
   window.location.href = "empleados.html";
+}
+
+// ============================================================
+//  FUNCIONES AUXILIARES PARA EL AVATAR
+// ============================================================
+
+// Lista de degradados para los avatares (le da variedad de color)
+const GRADIENTES = [
+  "linear-gradient(135deg, #6366f1, #8b5cf6)",
+  "linear-gradient(135deg, #0ea5e9, #22d3ee)",
+  "linear-gradient(135deg, #10b981, #34d399)",
+  "linear-gradient(135deg, #f59e0b, #fbbf24)",
+  "linear-gradient(135deg, #ef4444, #fb7185)",
+  "linear-gradient(135deg, #ec4899, #f472b6)",
+];
+
+// Devuelve las iniciales de un nombre. Ej: "Recursos Humanos" -> "RH"
+function iniciales(nombre) {
+  const partes = nombre.trim().split(" ");
+  const primera = partes[0][0];
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
+  return (primera + ultima).toUpperCase();
+}
+
+// Elige un degradado fijo según la primera letra del nombre
+function gradienteAvatar(nombre) {
+  const indice = nombre.charCodeAt(0) % GRADIENTES.length;
+  return GRADIENTES[indice];
 }

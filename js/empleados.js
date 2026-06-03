@@ -79,31 +79,48 @@ function renderizarEmpleado(empleado) {
   const tile = document.createElement("div");
   tile.className = "tile";
 
+  // --- Encabezado: avatar con iniciales + nombre + cargo ---
+  const head = document.createElement("div");
+  head.className = "tile-head";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = iniciales(empleado.nombre);
+  avatar.style.background = gradienteAvatar(empleado.nombre);
+
+  const headtext = document.createElement("div");
+  headtext.className = "tile-headtext";
   const titulo = document.createElement("h3");
   titulo.className = "tile-title";
   titulo.textContent = empleado.nombre;
-
-  // Cargo como "chip" destacado
   const cargo = document.createElement("span");
-  cargo.className = "chip";
+  cargo.className = "tile-sub";
   cargo.textContent = empleado.cargo;
+  headtext.appendChild(titulo);
+  headtext.appendChild(cargo);
 
-  // Fecha de ingreso (en estilo monoespaciado)
-  const meta = document.createElement("div");
-  meta.className = "tile-meta";
+  head.appendChild(avatar);
+  head.appendChild(headtext);
+
+  // --- Cuerpo: fecha de ingreso (en estilo monoespaciado) ---
+  const body = document.createElement("div");
+  body.className = "tile-body";
+  const fila = document.createElement("div");
+  fila.className = "meta-row";
   const fecha = document.createElement("span");
   fecha.className = "mono";
   fecha.textContent = `Ingreso: ${empleado.fechaIngreso}`;
-  meta.appendChild(fecha);
+  fila.appendChild(fecha);
+  body.appendChild(fila);
 
-  // Acciones
+  // --- Acciones ---
   const acciones = document.createElement("div");
   acciones.className = "tile-actions";
 
   // Botón "Ver asistencias": guarda el id y navega
   const verBtn = document.createElement("button");
   verBtn.className = "button primary small";
-  verBtn.textContent = "Ver asistencias";
+  verBtn.textContent = "Ver asistencias →";
   verBtn.addEventListener("click", () => verAsistencias(empleado.id));
 
   const editarBtn = document.createElement("button");
@@ -119,9 +136,8 @@ function renderizarEmpleado(empleado) {
   acciones.appendChild(verBtn);
   acciones.appendChild(editarBtn);
   acciones.appendChild(eliminarBtn);
-  tile.appendChild(titulo);
-  tile.appendChild(cargo);
-  tile.appendChild(meta);
+  tile.appendChild(head);
+  tile.appendChild(body);
   tile.appendChild(acciones);
   listaEmpleados.appendChild(tile);
 }
@@ -222,4 +238,32 @@ async function eliminarEmpleado(id) {
 function verAsistencias(id) {
   localStorage.setItem("empleadoId", id);
   window.location.href = "asistencias.html";
+}
+
+// ============================================================
+//  FUNCIONES AUXILIARES PARA EL AVATAR
+// ============================================================
+
+// Lista de degradados para los avatares (le da variedad de color)
+const GRADIENTES = [
+  "linear-gradient(135deg, #6366f1, #8b5cf6)",
+  "linear-gradient(135deg, #0ea5e9, #22d3ee)",
+  "linear-gradient(135deg, #10b981, #34d399)",
+  "linear-gradient(135deg, #f59e0b, #fbbf24)",
+  "linear-gradient(135deg, #ef4444, #fb7185)",
+  "linear-gradient(135deg, #ec4899, #f472b6)",
+];
+
+// Devuelve las iniciales de un nombre. Ej: "Laura Martínez" -> "LM"
+function iniciales(nombre) {
+  const partes = nombre.trim().split(" ");
+  const primera = partes[0][0];
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
+  return (primera + ultima).toUpperCase();
+}
+
+// Elige un degradado fijo según la primera letra del nombre
+function gradienteAvatar(nombre) {
+  const indice = nombre.charCodeAt(0) % GRADIENTES.length;
+  return GRADIENTES[indice];
 }

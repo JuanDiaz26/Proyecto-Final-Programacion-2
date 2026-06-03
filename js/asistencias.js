@@ -19,6 +19,10 @@ const botonVolver = document.getElementById("botonVolver");
 // Los tres estados posibles de una asistencia
 const ESTADOS = ["Presente", "Ausente", "Tardanza"];
 
+// Dibujo (SVG) de un calendario que usamos como ícono de cada fila
+const ICONO_CALENDARIO =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+
 // Cuando carga la página, arrancamos
 document.addEventListener("DOMContentLoaded", iniciar);
 
@@ -86,18 +90,19 @@ function renderizarAsistencia(asistencia) {
   const item = document.createElement("div");
   item.className = "row-item";
 
-  // Lado izquierdo: punto de color + fecha
+  // Lado izquierdo: ícono de calendario (coloreado según el estado) + fecha
   const izquierda = document.createElement("div");
   izquierda.className = "row-left";
 
-  const punto = document.createElement("span");
-  punto.className = "status-dot " + claseColor;
+  const icono = document.createElement("div");
+  icono.className = "row-icon " + claseColor;
+  icono.innerHTML = ICONO_CALENDARIO;
 
   const fecha = document.createElement("span");
   fecha.className = "row-date";
   fecha.textContent = asistencia.fecha;
 
-  izquierda.appendChild(punto);
+  izquierda.appendChild(icono);
   izquierda.appendChild(fecha);
 
   // Lado derecho: selector de estado + botón eliminar
