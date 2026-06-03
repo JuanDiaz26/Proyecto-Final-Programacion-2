@@ -148,20 +148,49 @@ async function crearEmpleado(evento) {
 }
 
 // ------------------------------------------------------------
-// ACTUALIZAR: edita nombre y cargo (PATCH)
+// ACTUALIZAR: edita nombre, cargo y departamento (PATCH)
 // ------------------------------------------------------------
 async function editarEmpleado(id) {
   const nuevoNombre = prompt("Nuevo nombre del empleado:");
   const nuevoCargo = prompt("Nuevo cargo:");
 
+  // Validación: nombre y cargo no pueden quedar vacíos
   if (!nuevoNombre || !nuevoCargo) {
     alert("Datos incompletos. No se guardaron los cambios.");
     return;
   }
 
+  // Traemos todos los departamentos para poder cambiar de área al empleado
+  const respuesta = await axios.get(`${API}/departamentos`);
+  const departamentos = respuesta.data;
+
+  // Armamos un texto con las opciones disponibles (id - nombre)
+  let opciones = "Departamento (escribí el número de id):\n";
+  departamentos.forEach((depto) => {
+    opciones += `${depto.id} - ${depto.nombre}\n`;
+  });
+
+  // El prompt arranca con el departamento actual ya cargado como valor por defecto
+  const elegido = prompt(opciones, departamentoId);
+  if (!elegido) {
+    alert("No se eligió departamento. No se guardaron los cambios.");
+    return;
+  }
+
+  // Validamos que el id elegido exista realmente entre los departamentos
+  const existe = departamentos.find((depto) => depto.id === Number(elegido));
+  if (!existe) {
+    alert("Ese departamento no existe. No se guardaron los cambios.");
+    return;
+  }
+
+  // Guardamos los tres campos. Si cambió de departamento, al recargar la
+  // lista (filtrada por el departamento actual) el empleado ya no aparecerá:
+  // ahora pertenece a otra área.
   await axios.patch(`${API}/empleados/${id}`, {
     nombre: nuevoNombre,
     cargo: nuevoCargo,
+    departamentoId: Number(elegido),
   });
 
   cargarEmpleados();

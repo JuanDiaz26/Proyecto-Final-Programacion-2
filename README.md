@@ -278,7 +278,24 @@ renderizarEmpleado(respuesta.data);
 **[MEDIA]** Crea el empleado y lo muestra al instante.
 
 #### `editarEmpleado(id)` — ACTUALIZAR (PATCH)
-Pide nuevo nombre y cargo con `prompt`, valida con un condicional y manda `axios.patch`. **[MEDIA]**
+Edita **nombre, cargo y departamento** del empleado.
+```js
+const respuesta = await axios.get(`${API}/departamentos`);
+departamentos.forEach((depto) => {
+  opciones += `${depto.id} - ${depto.nombre}\n`;
+});
+const elegido = prompt(opciones, departamentoId);
+const existe = departamentos.find((depto) => depto.id === Number(elegido));
+```
+**[DIFÍCIL]** Para cambiar de área traemos los departamentos, armamos la lista de opciones
+con `forEach`, la mostramos en un `prompt` (con el departamento actual como valor por
+defecto) y validamos con **`find`** que el id elegido exista de verdad.
+```js
+await axios.patch(`${API}/empleados/${id}`, { nombre, cargo, departamentoId: Number(elegido) });
+```
+**[MEDIA]** Guardamos los tres campos. **Importante:** si el empleado cambió de departamento,
+al recargar la lista (que está filtrada por el departamento actual) **ya no aparece**, porque
+ahora pertenece a otra área. Es el comportamiento esperado de una reasignación.
 
 #### `eliminarEmpleado(id)` — ELIMINAR EN CASCADA (DELETE)
 ```js
