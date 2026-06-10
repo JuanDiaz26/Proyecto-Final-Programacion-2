@@ -1,360 +1,525 @@
 /* ============================================================
-   TEMA VISUAL DEL PANEL RRHH  ·  versión CLARA
-   Capa de diseño propia que se carga DESPUÉS de Bootstrap
-   para darle un aspecto moderno y profesional.
+   PANEL RRHH · IDENTIDAD VISUAL — EDITORIAL / SUIZO
+   ------------------------------------------------------------
+   Filosofía: tipografía protagonista, grilla estricta, mucho
+   aire, bordes hairline, cero decoración. UN solo color de
+   acento. SOLO modo claro (sin dark mode, a propósito).
+
+   Toda la identidad se controla desde los TOKENS de :root.
+   Ningún componente usa colores/medidas hardcodeadas: todo
+   referencia a las variables. Cambiando :root cambia todo.
    ============================================================ */
 
-/* Paleta y variables de diseño (se usan en todo el archivo) */
+/* ============================================================
+   1) TOKENS  (única fuente de verdad)
+   ============================================================ */
 :root {
+  /* Forzamos esquema claro: la herramienta se ve igual aunque
+     el sistema operativo esté en modo oscuro. */
   color-scheme: light;
 
-  /* Fondo y superficies */
-  --bg: #f3f5fb;
-  --surface: #ffffff;
-  --surface-2: #f6f8fc;
-  --border: #e8ebf2;
-  --border-strong: #d6dbe6;
+  /* --- Color (un solo valor cada uno; no se invierten) --- */
+  --ink: #1A1A1A;              /* texto y elementos fuertes      */
+  --paper: #FAF9F6;            /* fondo, off-white cálido        */
+  --surface: #FFFFFF;          /* tarjetas / superficies         */
+  --muted: #6B6B6B;            /* texto secundario               */
+  --line: rgba(0, 0, 0, 0.12); /* bordes hairline                */
+  --accent: #D85A30;           /* ÚNICO acento (coral terracota) */
+  --danger: #A32D2D;           /* solo acciones destructivas     */
 
-  /* Texto */
-  --text: #1b2030;
-  --text-muted: #59617a;
-  --text-dim: #8b93a7;
+  /* --- Tipografía --- */
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Acento (indigo) */
-  --accent: #6366f1;
-  --accent-hover: #4f51e6;
-  --accent-soft: #eef0fe;
-  --accent-border: #d6dafb;
+  /* Solo dos pesos reales: 400 y 500 (600 para énfasis puntual). Nada de 700+. */
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
 
-  /* Estados */
-  --green: #15803d; --green-soft: #e7f6ec; --green-border: #bfe6cb;
-  --red: #dc2626;   --red-soft: #fdecec;   --red-border: #f6cccc;
-  --amber: #b45309; --amber-soft: #fdf2e0; --amber-border: #f3ddb4;
+  /* --- Forma (casi recta) --- */
+  --radius: 5px;
+  --radius-sm: 3px;
 
-  /* Formas y sombras */
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.05);
-  --shadow-md: 0 8px 22px rgba(16, 24, 40, 0.10);
-  --shadow-lg: 0 18px 44px rgba(16, 24, 40, 0.14);
+  /* --- Espaciado: baseline grid de 8px --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 64px;
 
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* --- Borde hairline reutilizable --- */
+  --hairline: 1px solid var(--line);
 }
 
-/* Base */
+/* ============================================================
+   2) BASE
+   ============================================================ */
 * { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  line-height: 1.55;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: var(--w-regular);
+  font-size: 15px;
+  line-height: 1.6;            /* ritmo de ~24px sobre la grilla de 8px */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Toques de color muy sutiles en el fondo (detalle "moderno") */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(900px 480px at 100% -12%, rgba(99, 102, 241, 0.10), transparent 60%),
-    radial-gradient(820px 480px at -8% -4%, rgba(14, 165, 233, 0.08), transparent 55%);
-  pointer-events: none;
-  z-index: 0;
+/* Foco visible y consistente (accesibilidad) */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
-/* Ancho del contenido (sobreescribe el container de Bootstrap) */
+/* Selección de texto con el único acento */
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* Ancho de contenido (sobreescribe el container de Bootstrap) */
 .container {
-  position: relative;
-  z-index: 1;
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
 }
 
-/* ---------- Barra superior ---------- */
+/* ============================================================
+   3) BARRA SUPERIOR  (wordmark de texto + tabs subrayadas)
+   ============================================================ */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+  border-bottom: var(--hairline);
 }
 .topbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-4);
   height: 64px;
-  gap: 16px;
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  display: grid;
-  place-items: center;
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35);
-}
-.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-name { font-weight: 650; font-size: 1rem; }
-.brand-sub { color: var(--text-dim); font-size: 0.76rem; }
 
-/* Indicador de pasos (Departamentos › Empleados › Asistencias) */
-.steps { display: flex; align-items: center; gap: 8px; }
-.step {
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  padding: 5px 11px;
-  border-radius: 999px;
+/* Wordmark: reemplaza al viejo logo "HR" en cuadrado con degradé */
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
 }
-.step.active {
-  color: var(--accent);
-  background: var(--accent-soft);
-  font-weight: 600;
+.wordmark-name {
+  font-family: var(--font-display);
+  font-weight: var(--w-medium);
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
-.step-sep { color: var(--border-strong); font-size: 0.8rem; }
+.wordmark-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
 
-/* ---------- Encabezado de cada página ---------- */
+/* Tabs: texto con subrayado de 2px en la activa (sin píldoras) */
+.tabs {
+  display: flex;
+  gap: var(--space-4);
+}
+.tab {
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: var(--space-1) 0;
+  border-bottom: 2px solid transparent;
+}
+.tab.is-active {
+  color: var(--ink);
+  font-weight: var(--w-medium);
+  border-bottom-color: var(--ink);
+}
+
+/* ============================================================
+   4) ENCABEZADO DE PÁGINA  (kicker mono + título display)
+   ============================================================ */
 .page-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin: 34px 0 22px;
+  gap: var(--space-4);
+  padding: var(--space-6) 0 var(--space-4);
+  margin-bottom: var(--space-5);
+  border-bottom: var(--hairline);
 }
-.page-title { font-size: 1.8rem; font-weight: 750; letter-spacing: -0.02em; margin: 0; }
-.page-subtitle { color: var(--text-muted); font-size: 0.96rem; margin: 6px 0 0; }
+.page-head-text { min-width: 0; }
 
-/* Botón "Volver" */
+/* Kicker: etiqueta chica en mono, en mayúsculas, con tracking amplio */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin: 0 0 var(--space-2);
+}
+.page-title {
+  font-family: var(--font-display);
+  font-weight: var(--w-medium);
+  font-size: 2.2rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.page-subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: var(--space-2) 0 0;
+  max-width: 60ch;
+}
+
+/* Botón "Volver" (mono, discreto) */
 .back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: transparent;
+  gap: var(--space-1);
+  background: none;
   border: none;
-  color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-top: 24px;
-  padding: 6px 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: var(--space-2) 0;
+  margin-top: var(--space-4);
 }
-.back:hover { color: var(--accent); }
+.back:hover { color: var(--ink); }
 
-/* ---------- Formulario (barra de creación) ---------- */
+/* ============================================================
+   5) FORMULARIO  (barra de creación + inputs)
+   ============================================================ */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-2);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--hairline);
   border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 26px;
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 .field {
   flex: 1;
-  min-width: 170px;
-  background: #ffffff;
-  border: 1px solid var(--border-strong);
-  color: var(--text);
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 11px 14px;
-  font-size: 0.92rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 10px 12px;
+  transition: border-color 0.12s ease;
 }
-.field::placeholder { color: var(--text-dim); }
-.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field::placeholder { color: var(--muted); }
+/* Foco: solo cambia el borde a --ink, sin glow ni sombra de color */
+.field:focus {
+  outline: none;
+  border-color: var(--ink);
+}
 
-/* ---------- Botones ---------- */
+/* ============================================================
+   6) BOTONES
+   - primario: sólido --ink con texto --paper
+   - secundarios (Editar / Eliminar): links subrayados
+   ============================================================ */
 .button {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: var(--w-medium);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 11px 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
+  padding: 10px 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-1);
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+  background: none;
+  color: var(--ink);
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
-.button:active { transform: translateY(1px); }
 .button.primary {
-  background: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.30);
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
 }
-.button.primary:hover { background: var(--accent-hover); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.38); }
-.button.ghost { background: #ffffff; border-color: var(--border-strong); color: var(--text); }
-.button.ghost:hover { background: var(--surface-2); border-color: #c2c9d6; }
-.button.danger { background: #ffffff; border-color: var(--red-border); color: var(--red); }
-.button.danger:hover { background: var(--red-soft); }
-.button.small { padding: 8px 12px; font-size: 0.82rem; }
+.button.primary:hover { background: #000000; }
+.button.small { padding: 7px 12px; font-size: 0.82rem; }
 
-/* ---------- Grilla de tarjetas (departamentos / empleados) ---------- */
+/* Secundarios como links (van DESPUÉS para pisar a .small) */
+.button.ghost,
+.button.danger {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-weight: var(--w-regular);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.button.ghost { color: var(--ink); }
+.button.ghost:hover { color: var(--muted); }
+.button.danger { color: var(--danger); }
+.button.danger:hover { text-decoration-thickness: 2px; }
+
+/* ============================================================
+   7) TARJETAS  (departamentos / empleados)
+   ============================================================ */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
 }
 .tile {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  gap: var(--space-3);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  transition: border-color 0.12s ease;
 }
-.tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--accent-border); }
+.tile:hover { border-color: var(--ink); } /* sin sombra: solo el borde */
 
-/* Encabezado de la tarjeta: avatar + nombre + subtítulo */
-.tile-head { display: flex; align-items: center; gap: 13px; }
-.avatar {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.3px;
-  box-shadow: var(--shadow-sm);
+/* Encabezado de tarjeta: identificador (cuadradito + código) sobre el nombre */
+.tile-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
-.tile-headtext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile-id {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Cuadradito de 8px, monocromo --ink. El diferenciador es el CÓDIGO, no el color. */
+.mark {
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  border-radius: 1px;
+  flex: none;
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tile-headtext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 .tile-title {
-  font-size: 1.08rem;
-  font-weight: 650;
+  font-family: var(--font-display);
+  font-weight: var(--w-medium);
+  font-size: 1.15rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tile-sub { color: var(--text-muted); font-size: 0.86rem; }
+.tile-sub {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
 
-.tile-body { display: flex; flex-direction: column; gap: 10px; }
-.meta-row { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.86rem; }
-.meta-row .mono { font-family: var(--mono); font-size: 0.82rem; color: var(--text-dim); }
+.tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.mono { font-family: var(--font-mono); font-size: 0.82rem; }
+
+/* Contador de empleados en mono, formato "02 empleados" (sin píldora) */
+.count {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.count-num { color: var(--ink); }
 
 .tile-actions {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-
-/* "Chip" (cantidad de empleados) */
-.chip {
-  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  width: fit-content;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: var(--hairline);
 }
-.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 
-/* ---------- Lista de asistencias (filas) ---------- */
-.stack { display: flex; flex-direction: column; gap: 12px; }
+/* ============================================================
+   8) LISTA DE ASISTENCIAS  (filas separadas por hairline)
+   ============================================================ */
+.stack {
+  display: flex;
+  flex-direction: column;
+  border-top: var(--hairline);
+}
 .row-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 15px 20px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: var(--hairline);
 }
-.row-item:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); }
-.row-left { display: flex; align-items: center; gap: 14px; }
-.row-icon {
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: var(--accent-soft);
-  color: var(--accent);
+.row-left { display: flex; align-items: center; gap: var(--space-3); }
+.row-right { display: flex; align-items: center; gap: var(--space-4); }
+.row-date {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--ink);
 }
-.row-date { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--text); }
-.row-right { display: flex; align-items: center; gap: 12px; }
 
-/* Selector de estado (pill de color) */
+/* Marcador de estado: cuadradito + texto SIEMPRE visible (accesibilidad).
+   Sin verde/rojo/ámbar: solo --ink / --muted / --accent. */
+.row-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--muted);
+  flex: none;
+}
+.row-icon.is-presente { background: var(--ink); }
+.row-icon.is-ausente { background: var(--muted); }
+.row-icon.is-tardanza { background: var(--accent); }
+
+/* Texto del estado, SIEMPRE visible (no dependemos solo del color) */
+.row-state {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.row-state.is-ausente { color: var(--muted); }
+.row-state.is-tardanza { color: var(--accent); }
+
+/* Selector de estado: borde hairline, sin píldora ni puntito */
 .status {
   appearance: none;
   -webkit-appearance: none;
-  background-color: #ffffff;
-  color: var(--text);
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  padding: 8px 32px 8px 16px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  font-family: inherit;
+  background-color: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 6px 28px 6px 10px;
   cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b93a7' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 11px center;
-  transition: border-color 0.15s, background-color 0.15s;
+  background-position: right 9px center;
+  transition: border-color 0.12s ease;
 }
-.status option { background: #ffffff; color: var(--text); }
+.status:focus { outline: none; border-color: var(--ink); }
+.status.is-tardanza { color: var(--accent); }
+.status.is-ausente { color: var(--muted); }
 
-/* Colores por estado (se aplican al ícono y al selector) */
-.status.is-presente { color: var(--green); border-color: var(--green-border); background-color: var(--green-soft); }
-.row-icon.is-presente { background: var(--green-soft); color: var(--green); }
-
-.status.is-ausente { color: var(--red); border-color: var(--red-border); background-color: var(--red-soft); }
-.row-icon.is-ausente { background: var(--red-soft); color: var(--red); }
-
-.status.is-tardanza { color: var(--amber); border-color: var(--amber-border); background-color: var(--amber-soft); }
-.row-icon.is-tardanza { background: var(--amber-soft); color: var(--amber); }
-
-/* ---------- Estado vacío ---------- */
+/* ============================================================
+   9) ESTADO VACÍO
+   ============================================================ */
 .empty {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 54px 24px;
-  color: var(--text-dim);
+  padding: var(--space-7) var(--space-4);
+  color: var(--muted);
+  font-size: 0.92rem;
   background: var(--surface);
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--line);
   border-radius: var(--radius);
-  font-size: 0.94rem;
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 560px) {
-  .steps { display: none; }
+/* ============================================================
+   10) MODAL  (editar departamento / empleado)
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(26, 26, 26, 0.4);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+.modal-box {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-weight: var(--w-medium);
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-4);
+}
+.modal-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.modal-label select.field { cursor: pointer; }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+/* ============================================================
+   11) RESPONSIVE (mobile-first friendly)
+   ============================================================ */
+@media (max-width: 640px) {
+  .page-title { font-size: 1.7rem; }
   .page-head { flex-direction: column; align-items: flex-start; }
+  .tabs { gap: var(--space-3); }
+  .wordmark-tag { display: none; }
+}
+@media (max-width: 480px) {
+  .tabs { font-size: 0.8rem; }
 }

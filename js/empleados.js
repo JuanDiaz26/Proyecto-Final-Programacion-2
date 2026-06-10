@@ -2,10 +2,9 @@
 //  EMPLEADOS (empleados.html)
 //  CRUD de los empleados del departamento elegido en index.html.
 //  El id del departamento llega por localStorage.
+//  Las funciones API, iniciales(), manejarError() y abrirModal()
+//  viven en js/utils.js (se carga antes que este archivo).
 // ============================================================
-
-// Dirección de la API fake
-const API = "http://localhost:3000";
 
 // Leemos el departamento que se guardó en la página anterior
 const departamentoId = localStorage.getItem("departamentoId");
@@ -47,29 +46,37 @@ async function iniciar() {
 // Muestra el nombre del departamento actual en el título
 // ------------------------------------------------------------
 async function mostrarNombreDepartamento() {
-  const respuesta = await axios.get(`${API}/departamentos/${departamentoId}`);
-  tituloDepartamento.textContent = `Empleados de ${respuesta.data.nombre}`;
+  try {
+    const respuesta = await axios.get(`${API}/departamentos/${departamentoId}`);
+    tituloDepartamento.textContent = `Empleados de ${respuesta.data.nombre}`;
+  } catch (error) {
+    manejarError(error, "obtener el departamento");
+  }
 }
 
 // ------------------------------------------------------------
 // LEER: trae los empleados de ESTE departamento y los dibuja
 // ------------------------------------------------------------
 async function cargarEmpleados() {
-  const respuesta = await axios.get(`${API}/empleados?departamentoId=${departamentoId}`);
-  const empleados = respuesta.data;
+  try {
+    const respuesta = await axios.get(`${API}/empleados?departamentoId=${departamentoId}`);
+    const empleados = respuesta.data;
 
-  listaEmpleados.innerHTML = "";
+    listaEmpleados.innerHTML = "";
 
-  // Si el departamento no tiene empleados, avisamos y cortamos
-  if (empleados.length === 0) {
-    listaEmpleados.innerHTML =
-      '<div class="empty">Este departamento no tiene empleados todavía. Agregá uno con el formulario de arriba.</div>';
-    return;
+    // Si el departamento no tiene empleados, avisamos y cortamos
+    if (empleados.length === 0) {
+      listaEmpleados.innerHTML =
+        '<div class="empty">Este departamento no tiene empleados todavía. Agregá uno con el formulario de arriba.</div>';
+      return;
+    }
+
+    empleados.forEach((empleado) => {
+      renderizarEmpleado(empleado);
+    });
+  } catch (error) {
+    manejarError(error, "cargar los empleados");
   }
-
-  empleados.forEach((empleado) => {
-    renderizarEmpleado(empleado);
-  });
 }
 
 // ------------------------------------------------------------
@@ -83,10 +90,16 @@ function renderizarEmpleado(empleado) {
   const head = document.createElement("div");
   head.className = "tile-head";
 
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.textContent = iniciales(empleado.nombre);
-  avatar.style.background = gradienteAvatar(empleado.nombre);
+  // Identificador editorial: cuadradito de 8px (--ink) + iniciales en mono
+  const tileId = document.createElement("div");
+  tileId.className = "tile-id";
+  const mark = document.createElement("span");
+  mark.className = "mark";
+  const code = document.createElement("span");
+  code.className = "code";
+  code.textContent = iniciales(empleado.nombre);
+  tileId.appendChild(mark);
+  tileId.appendChild(code);
 
   const headtext = document.createElement("div");
   headtext.className = "tile-headtext";
@@ -99,7 +112,7 @@ function renderizarEmpleado(empleado) {
   headtext.appendChild(titulo);
   headtext.appendChild(cargo);
 
-  head.appendChild(avatar);
+  head.appendChild(tileId);
   head.appendChild(headtext);
 
   // --- Cuerpo: fecha de ingreso (en estilo monoespaciado) ---
@@ -155,61 +168,69 @@ async function crearEmpleado(evento) {
     departamentoId: Number(departamentoId), // lo guardamos como número
   };
 
-  const respuesta = await axios.post(`${API}/empleados`, nuevo);
+  try {
+    const respuesta = await axios.post(`${API}/empleados`, nuevo);
 
-  // Mostramos el nuevo empleado al instante
-  renderizarEmpleado(respuesta.data);
+    // Mostramos el nuevo empleado al instante
+    renderizarEmpleado(respuesta.data);
 
-  formEmpleado.reset();
+    formEmpleado.reset();
+  } catch (error) {
+    manejarError(error, "crear el empleado");
+  }
 }
 
 // ------------------------------------------------------------
 // ACTUALIZAR: edita nombre, cargo y departamento (PATCH)
+// El departamento se elige desde un <select> dentro del modal.
 // ------------------------------------------------------------
 async function editarEmpleado(id) {
-  const nuevoNombre = prompt("Nuevo nombre del empleado:");
-  const nuevoCargo = prompt("Nuevo cargo:");
+  try {
+    // Datos actuales del empleado (para precargar el formulario)
+    const actual = (await axios.get(`${API}/empleados/${id}`)).data;
 
-  // Validación: nombre y cargo no pueden quedar vacíos
-  if (!nuevoNombre || !nuevoCargo) {
-    alert("Datos incompletos. No se guardaron los cambios.");
-    return;
+    // Traemos los departamentos y armamos las opciones del <select>.
+    // map() transforma cada departamento en { value, label }.
+    const departamentos = (await axios.get(`${API}/departamentos`)).data;
+    const opciones = departamentos.map((depto) => ({
+      value: depto.id,
+      label: depto.nombre,
+    }));
+
+    // Abrimos el modal con los 3 campos (el último es un selector)
+    const datos = await abrirModal("Editar empleado", [
+      { name: "nombre", label: "Nombre", value: actual.nombre },
+      { name: "cargo", label: "Cargo", value: actual.cargo },
+      {
+        name: "departamentoId",
+        label: "Departamento",
+        type: "select",
+        value: actual.departamentoId,
+        options: opciones,
+      },
+    ]);
+
+    if (!datos) return; // canceló
+
+    // Validación: nombre y cargo no pueden quedar vacíos
+    if (!datos.nombre || !datos.cargo) {
+      alert("Datos incompletos. No se guardaron los cambios.");
+      return;
+    }
+
+    // Guardamos los tres campos. Si cambió de departamento, al recargar la
+    // lista (filtrada por el departamento actual) el empleado ya no aparecerá:
+    // ahora pertenece a otra área.
+    await axios.patch(`${API}/empleados/${id}`, {
+      nombre: datos.nombre,
+      cargo: datos.cargo,
+      departamentoId: Number(datos.departamentoId),
+    });
+
+    cargarEmpleados();
+  } catch (error) {
+    manejarError(error, "editar el empleado");
   }
-
-  // Traemos todos los departamentos para poder cambiar de área al empleado
-  const respuesta = await axios.get(`${API}/departamentos`);
-  const departamentos = respuesta.data;
-
-  // Armamos un texto con las opciones disponibles (id - nombre)
-  let opciones = "Departamento (escribí el número de id):\n";
-  departamentos.forEach((depto) => {
-    opciones += `${depto.id} - ${depto.nombre}\n`;
-  });
-
-  // El prompt arranca con el departamento actual ya cargado como valor por defecto
-  const elegido = prompt(opciones, departamentoId);
-  if (!elegido) {
-    alert("No se eligió departamento. No se guardaron los cambios.");
-    return;
-  }
-
-  // Validamos que el id elegido exista realmente entre los departamentos
-  const existe = departamentos.find((depto) => depto.id === Number(elegido));
-  if (!existe) {
-    alert("Ese departamento no existe. No se guardaron los cambios.");
-    return;
-  }
-
-  // Guardamos los tres campos. Si cambió de departamento, al recargar la
-  // lista (filtrada por el departamento actual) el empleado ya no aparecerá:
-  // ahora pertenece a otra área.
-  await axios.patch(`${API}/empleados/${id}`, {
-    nombre: nuevoNombre,
-    cargo: nuevoCargo,
-    departamentoId: Number(elegido),
-  });
-
-  cargarEmpleados();
 }
 
 // ------------------------------------------------------------
@@ -220,16 +241,20 @@ async function eliminarEmpleado(id) {
     return;
   }
 
-  // Borramos primero las asistencias del empleado
-  const respAsistencias = await axios.get(`${API}/asistencias?empleadoId=${id}`);
-  for (const asistencia of respAsistencias.data) {
-    await axios.delete(`${API}/asistencias/${asistencia.id}`);
+  try {
+    // Borramos primero las asistencias del empleado
+    const respAsistencias = await axios.get(`${API}/asistencias?empleadoId=${id}`);
+    for (const asistencia of respAsistencias.data) {
+      await axios.delete(`${API}/asistencias/${asistencia.id}`);
+    }
+
+    // Y después al empleado
+    await axios.delete(`${API}/empleados/${id}`);
+
+    cargarEmpleados();
+  } catch (error) {
+    manejarError(error, "eliminar el empleado");
   }
-
-  // Y después al empleado
-  await axios.delete(`${API}/empleados/${id}`);
-
-  cargarEmpleados();
 }
 
 // ------------------------------------------------------------
@@ -238,32 +263,4 @@ async function eliminarEmpleado(id) {
 function verAsistencias(id) {
   localStorage.setItem("empleadoId", id);
   window.location.href = "asistencias.html";
-}
-
-// ============================================================
-//  FUNCIONES AUXILIARES PARA EL AVATAR
-// ============================================================
-
-// Lista de degradados para los avatares (le da variedad de color)
-const GRADIENTES = [
-  "linear-gradient(135deg, #6366f1, #8b5cf6)",
-  "linear-gradient(135deg, #0ea5e9, #22d3ee)",
-  "linear-gradient(135deg, #10b981, #34d399)",
-  "linear-gradient(135deg, #f59e0b, #fbbf24)",
-  "linear-gradient(135deg, #ef4444, #fb7185)",
-  "linear-gradient(135deg, #ec4899, #f472b6)",
-];
-
-// Devuelve las iniciales de un nombre. Ej: "Laura Martínez" -> "LM"
-function iniciales(nombre) {
-  const partes = nombre.trim().split(" ");
-  const primera = partes[0][0];
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primera + ultima).toUpperCase();
-}
-
-// Elige un degradado fijo según la primera letra del nombre
-function gradienteAvatar(nombre) {
-  const indice = nombre.charCodeAt(0) % GRADIENTES.length;
-  return GRADIENTES[indice];
 }

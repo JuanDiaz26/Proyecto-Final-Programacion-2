@@ -2,10 +2,9 @@
 //  ASISTENCIAS (asistencias.html)
 //  CRUD de las asistencias del empleado elegido en empleados.html.
 //  El id del empleado llega por localStorage.
+//  Las funciones API, fechaHoyISO() y manejarError() viven en
+//  js/utils.js (se carga antes que este archivo).
 // ============================================================
-
-// Dirección de la API fake
-const API = "http://localhost:3000";
 
 // Leemos el empleado que se guardó en la página anterior
 const empleadoId = localStorage.getItem("empleadoId");
@@ -18,10 +17,6 @@ const botonVolver = document.getElementById("botonVolver");
 
 // Los tres estados posibles de una asistencia
 const ESTADOS = ["Presente", "Ausente", "Tardanza"];
-
-// Dibujo (SVG) de un calendario que usamos como ícono de cada fila
-const ICONO_CALENDARIO =
-  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
 // Cuando carga la página, arrancamos
 document.addEventListener("DOMContentLoaded", iniciar);
@@ -50,8 +45,12 @@ async function iniciar() {
 // Muestra el nombre del empleado actual en el título
 // ------------------------------------------------------------
 async function mostrarNombreEmpleado() {
-  const respuesta = await axios.get(`${API}/empleados/${empleadoId}`);
-  tituloEmpleado.textContent = `Asistencias de ${respuesta.data.nombre}`;
+  try {
+    const respuesta = await axios.get(`${API}/empleados/${empleadoId}`);
+    tituloEmpleado.textContent = `Asistencias de ${respuesta.data.nombre}`;
+  } catch (error) {
+    manejarError(error, "obtener el empleado");
+  }
 }
 
 // ------------------------------------------------------------
@@ -59,25 +58,29 @@ async function mostrarNombreEmpleado() {
 // más reciente a la más antigua, y las dibuja.
 // ------------------------------------------------------------
 async function cargarAsistencias() {
-  const respuesta = await axios.get(`${API}/asistencias?empleadoId=${empleadoId}`);
-  const asistencias = respuesta.data;
+  try {
+    const respuesta = await axios.get(`${API}/asistencias?empleadoId=${empleadoId}`);
+    const asistencias = respuesta.data;
 
-  // Ordenamos por id de mayor a menor: el id más alto es el registro
-  // más nuevo, así que queda primero el más reciente.
-  asistencias.sort((a, b) => b.id - a.id);
+    // Ordenamos por id de mayor a menor: el id más alto es el registro
+    // más nuevo, así que queda primero el más reciente.
+    asistencias.sort((a, b) => b.id - a.id);
 
-  listaAsistencias.innerHTML = "";
+    listaAsistencias.innerHTML = "";
 
-  // Si no hay asistencias, avisamos y cortamos
-  if (asistencias.length === 0) {
-    listaAsistencias.innerHTML =
-      '<div class="empty">Sin asistencias registradas. Usá el botón “Registrar hoy”.</div>';
-    return;
+    // Si no hay asistencias, avisamos y cortamos
+    if (asistencias.length === 0) {
+      listaAsistencias.innerHTML =
+        '<div class="empty">Sin asistencias registradas. Usá el botón “Registrar hoy”.</div>';
+      return;
+    }
+
+    asistencias.forEach((asistencia) => {
+      renderizarAsistencia(asistencia);
+    });
+  } catch (error) {
+    manejarError(error, "cargar las asistencias");
   }
-
-  asistencias.forEach((asistencia) => {
-    renderizarAsistencia(asistencia);
-  });
 }
 
 // ------------------------------------------------------------
@@ -90,19 +93,25 @@ function renderizarAsistencia(asistencia) {
   const item = document.createElement("div");
   item.className = "row-item";
 
-  // Lado izquierdo: ícono de calendario (coloreado según el estado) + fecha
+  // Lado izquierdo: marcador de estado (cuadradito + texto SIEMPRE visible) + fecha
   const izquierda = document.createElement("div");
   izquierda.className = "row-left";
 
-  const icono = document.createElement("div");
-  icono.className = "row-icon " + claseColor;
-  icono.innerHTML = ICONO_CALENDARIO;
+  // Cuadradito coloreado por estado (--ink / --muted / --accent vía CSS)
+  const marca = document.createElement("span");
+  marca.className = "row-icon " + claseColor;
+
+  // Texto del estado, siempre visible (accesibilidad: no dependemos solo del color)
+  const estadoTexto = document.createElement("span");
+  estadoTexto.className = "row-state " + claseColor;
+  estadoTexto.textContent = asistencia.estado;
 
   const fecha = document.createElement("span");
   fecha.className = "row-date";
   fecha.textContent = asistencia.fecha;
 
-  izquierda.appendChild(icono);
+  izquierda.appendChild(marca);
+  izquierda.appendChild(estadoTexto);
   izquierda.appendChild(fecha);
 
   // Lado derecho: selector de estado + botón eliminar
@@ -144,22 +153,30 @@ function renderizarAsistencia(asistencia) {
 async function crearAsistencia() {
   const nueva = {
     empleadoId: Number(empleadoId),
-    fecha: new Date().toLocaleDateString(), // fecha automática de hoy
+    fecha: fechaHoyISO(), // fecha de hoy en formato ISO (AAAA-MM-DD)
     estado: "Presente", // estado inicial
   };
 
-  await axios.post(`${API}/asistencias`, nueva);
+  try {
+    await axios.post(`${API}/asistencias`, nueva);
 
-  // Volvemos a dibujar todo para que la nueva quede arriba (más reciente)
-  cargarAsistencias();
+    // Volvemos a dibujar todo para que la nueva quede arriba (más reciente)
+    cargarAsistencias();
+  } catch (error) {
+    manejarError(error, "registrar la asistencia");
+  }
 }
 
 // ------------------------------------------------------------
 // ACTUALIZAR: cambia el estado de una asistencia (PATCH)
 // ------------------------------------------------------------
 async function editarAsistencia(id, nuevoEstado) {
-  await axios.patch(`${API}/asistencias/${id}`, { estado: nuevoEstado });
-  cargarAsistencias();
+  try {
+    await axios.patch(`${API}/asistencias/${id}`, { estado: nuevoEstado });
+    cargarAsistencias();
+  } catch (error) {
+    manejarError(error, "actualizar el estado");
+  }
 }
 
 // ------------------------------------------------------------
@@ -169,6 +186,10 @@ async function eliminarAsistencia(id) {
   if (!confirm("¿Eliminar esta asistencia?")) {
     return;
   }
-  await axios.delete(`${API}/asistencias/${id}`);
-  cargarAsistencias();
+  try {
+    await axios.delete(`${API}/asistencias/${id}`);
+    cargarAsistencias();
+  } catch (error) {
+    manejarError(error, "eliminar la asistencia");
+  }
 }
