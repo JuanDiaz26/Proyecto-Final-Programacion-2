@@ -26,6 +26,7 @@
   --line: rgba(0, 0, 0, 0.12); /* bordes hairline                */
   --accent: #D85A30;           /* ÚNICO acento (coral terracota) */
   --danger: #A32D2D;           /* solo acciones destructivas     */
+  --on-ink-muted: rgba(250, 249, 246, 0.55); /* texto tenue sobre fondo --ink (footer) */
 
   /* --- Tipografía --- */
   --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
@@ -144,11 +145,19 @@ body {
   color: var(--muted);
   padding: var(--space-1) 0;
   border-bottom: 2px solid transparent;
+  cursor: pointer;
 }
+.tab:not(.is-active):not(.is-disabled):hover { color: var(--ink); }
 .tab.is-active {
   color: var(--ink);
   font-weight: var(--w-medium);
   border-bottom-color: var(--ink);
+  cursor: default;
+}
+/* Tab no disponible (no hay selección previa): no navega */
+.tab.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ============================================================
@@ -512,13 +521,74 @@ body {
 }
 
 /* ============================================================
-   11) RESPONSIVE (mobile-first friendly)
+   11) PIE DE PÁGINA
+   ============================================================ */
+/* Franja oscura full-width: separa con fuerza el footer del panel claro */
+.site-footer {
+  background: var(--ink);
+  color: var(--paper);
+  margin-top: var(--space-7);
+  padding: var(--space-6) 0;
+}
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.footer-wordmark {
+  font-family: var(--font-display);
+  font-weight: var(--w-medium);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+/* Kicker en el ACENTO coral: el toque de color que pediste */
+.footer-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+/* Etiquetas (Secciones / Integrantes) tenues sobre el fondo oscuro */
+.footer-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--on-ink-muted);
+}
+/* Enlaces de navegación del footer (los activa el JS, igual que las tabs) */
+.footer-nav .foot-link {
+  font-size: 0.85rem;
+  color: var(--on-ink-muted);
+  cursor: pointer;
+  width: fit-content;
+  transition: color 0.12s ease;
+}
+.footer-nav .foot-link:not(.is-disabled):hover { color: var(--accent); }
+.footer-nav .foot-link.is-disabled { opacity: 0.4; cursor: not-allowed; }
+
+.footer-team { text-align: right; }
+.footer-names { font-size: 0.88rem; color: var(--paper); max-width: 34ch; }
+
+/* ============================================================
+   12) RESPONSIVE (mobile-first friendly)
    ============================================================ */
 @media (max-width: 640px) {
   .page-title { font-size: 1.7rem; }
   .page-head { flex-direction: column; align-items: flex-start; }
   .tabs { gap: var(--space-3); }
   .wordmark-tag { display: none; }
+  .footer-inner { flex-direction: column; gap: var(--space-4); }
+  .footer-team { text-align: left; }
 }
 @media (max-width: 480px) {
   .tabs { font-size: 0.8rem; }

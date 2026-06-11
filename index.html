@@ -35,9 +35,9 @@
       </div>
       <!-- Tabs como texto: la activa lleva subrayado de 2px (indicador, no navega) -->
       <nav class="tabs" aria-label="Secciones">
-        <span class="tab is-active" aria-current="page">Departamentos</span>
-        <span class="tab">Empleados</span>
-        <span class="tab">Asistencias</span>
+        <span class="tab is-active" data-nav="departamentos" aria-current="page">Departamentos</span>
+        <span class="tab" data-nav="empleados">Empleados</span>
+        <span class="tab" data-nav="asistencias">Asistencias</span>
       </nav>
     </div>
   </header>
@@ -61,6 +61,28 @@
     <!-- Contenedor VACÍO: el JavaScript dibuja acá las tarjetas -->
     <div id="listaDepartamentos" class="cards"></div>
   </main>
+
+  <!-- Pie de página -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col">
+        <span class="footer-wordmark">Panel RRHH</span>
+        <span class="footer-kicker">Programación 2 · 2026</span>
+      </div>
+
+      <nav class="footer-col footer-nav" aria-label="Navegación del pie">
+        <span class="footer-label">Secciones</span>
+        <span class="foot-link" data-nav="departamentos">Departamentos</span>
+        <span class="foot-link" data-nav="empleados">Empleados</span>
+        <span class="foot-link" data-nav="asistencias">Asistencias</span>
+      </nav>
+
+      <div class="footer-col footer-team">
+        <span class="footer-label">Integrantes</span>
+        <span class="footer-names">Juan Diaz · Luciano Bravo · Segura Heredia Constanza</span>
+      </div>
+    </div>
+  </footer>
 
   <!-- Axios por CDN -->
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

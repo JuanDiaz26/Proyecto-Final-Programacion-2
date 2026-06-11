@@ -150,13 +150,28 @@ async function contarEmpleados(id) {
 async function crearDepartamento(evento) {
   evento.preventDefault(); // evita que el formulario recargue la página
 
-  const nuevo = {
-    nombre: inputNombre.value,
-    responsable: inputResponsable.value,
-  };
+  // .trim() para que no entren nombres con solo espacios
+  const nombre = inputNombre.value.trim();
+  const responsable = inputResponsable.value.trim();
+
+  if (!nombre || !responsable) {
+    alert("Completá el nombre y el responsable.");
+    return;
+  }
 
   try {
-    const respuesta = await axios.post(`${API}/departamentos`, nuevo);
+    // Unicidad: no puede haber dos departamentos con el mismo nombre.
+    // Comparamos normalizado (sin distinguir mayúsculas ni espacios).
+    const existentes = (await axios.get(`${API}/departamentos`)).data;
+    const repetido = existentes.some(
+      (d) => d.nombre.trim().toLowerCase() === nombre.toLowerCase()
+    );
+    if (repetido) {
+      alert(`Ya existe un departamento llamado "${nombre}".`);
+      return;
+    }
+
+    const respuesta = await axios.post(`${API}/departamentos`, { nombre, responsable });
 
     // Mostramos el nuevo departamento al instante (sin recargar)
     renderizarDepartamento(respuesta.data);
@@ -185,16 +200,26 @@ async function editarDepartamento(id) {
 
     if (!datos) return; // el usuario canceló
 
+    const nombre = datos.nombre.trim();
+    const responsable = datos.responsable.trim();
+
     // Validación: si quedó algo vacío, no guardamos
-    if (!datos.nombre || !datos.responsable) {
+    if (!nombre || !responsable) {
       alert("Datos incompletos. No se guardaron los cambios.");
       return;
     }
 
-    await axios.patch(`${API}/departamentos/${id}`, {
-      nombre: datos.nombre,
-      responsable: datos.responsable,
-    });
+    // Unicidad: el nuevo nombre no puede chocar con OTRO departamento (excluye el actual)
+    const existentes = (await axios.get(`${API}/departamentos`)).data;
+    const repetido = existentes.some(
+      (d) => d.id !== id && d.nombre.trim().toLowerCase() === nombre.toLowerCase()
+    );
+    if (repetido) {
+      alert(`Ya existe otro departamento llamado "${nombre}".`);
+      return;
+    }
+
+    await axios.patch(`${API}/departamentos/${id}`, { nombre, responsable });
 
     // Volvemos a dibujar la lista ya actualizada
     cargarDepartamentos();

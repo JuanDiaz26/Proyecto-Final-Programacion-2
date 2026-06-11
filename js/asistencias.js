@@ -62,9 +62,10 @@ async function cargarAsistencias() {
     const respuesta = await axios.get(`${API}/asistencias?empleadoId=${empleadoId}`);
     const asistencias = respuesta.data;
 
-    // Ordenamos por id de mayor a menor: el id más alto es el registro
-    // más nuevo, así que queda primero el más reciente.
-    asistencias.sort((a, b) => b.id - a.id);
+    // Ordenamos por FECHA de más reciente a más antigua. Como la fecha está
+    // en formato ISO (AAAA-MM-DD), comparar los textos ya da el orden cronológico.
+    // Si hay varias del mismo día, desempata el id (la última cargada primero).
+    asistencias.sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id);
 
     listaAsistencias.innerHTML = "";
 
@@ -151,16 +152,64 @@ function renderizarAsistencia(asistencia) {
 // CREAR: registra una asistencia con la fecha de hoy (POST)
 // ------------------------------------------------------------
 async function crearAsistencia() {
-  const nueva = {
-    empleadoId: Number(empleadoId),
-    fecha: fechaHoyISO(), // fecha de hoy en formato ISO (AAAA-MM-DD)
-    estado: "Presente", // estado inicial
-  };
+  const hoy = fechaHoyISO();
+
+  // Modal: elegimos la FECHA (por defecto hoy, sin permitir futuro) y el ESTADO.
+  const datos = await abrirModal("Registrar asistencia", [
+    { name: "fecha", label: "Fecha", type: "date", value: hoy, max: hoy },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      value: "Presente",
+      options: ESTADOS.map((e) => ({ value: e, label: e })),
+    },
+  ]);
+
+  if (!datos) return; // el usuario canceló
+
+  // Validación: la fecha es obligatoria y no puede ser futura
+  if (!datos.fecha) {
+    alert("Elegí una fecha.");
+    return;
+  }
+  if (datos.fecha > hoy) {
+    alert("No se puede registrar una fecha futura.");
+    return;
+  }
 
   try {
+    // No duplicar: que no haya ya una asistencia de este empleado en esa fecha
+    const mismaFecha = (
+      await axios.get(`${API}/asistencias?empleadoId=${empleadoId}&fecha=${datos.fecha}`)
+    ).data;
+    if (mismaFecha.length > 0) {
+      alert("Ya hay una asistencia registrada para esa fecha.");
+      return;
+    }
+
+    // Aviso (NO bloqueo): si estás cargando HOY y falta el día anterior (ayer)
+    if (datos.fecha === hoy) {
+      const ayer = fechaRelativaISO(-1);
+      const deAyer = (
+        await axios.get(`${API}/asistencias?empleadoId=${empleadoId}&fecha=${ayer}`)
+      ).data;
+      if (deAyer.length === 0) {
+        const seguir = confirm(
+          "Te falta registrar el día anterior (ayer). ¿Registrás hoy igual?"
+        );
+        if (!seguir) return;
+      }
+    }
+
+    const nueva = {
+      empleadoId: Number(empleadoId),
+      fecha: datos.fecha,
+      estado: datos.estado,
+    };
     await axios.post(`${API}/asistencias`, nueva);
 
-    // Volvemos a dibujar todo para que la nueva quede arriba (más reciente)
+    // Volvemos a dibujar todo para que quede ordenado por fecha
     cargarAsistencias();
   } catch (error) {
     manejarError(error, "registrar la asistencia");

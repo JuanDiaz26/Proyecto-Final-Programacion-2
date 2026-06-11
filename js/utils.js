@@ -55,6 +55,14 @@ function fechaHoyISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Devuelve una fecha relativa a hoy en formato ISO.
+// Ej: fechaRelativaISO(-1) -> ayer. (Lo usamos para avisar si falta cargar ayer.)
+function fechaRelativaISO(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
 // ============================================================
 //  3) MANEJO DE ERRORES
 // ============================================================
@@ -121,6 +129,9 @@ function abrirModal(titulo, campos) {
         input.className = "field";
         input.type = campo.type || "text";
         input.value = campo.value != null ? campo.value : "";
+        // Límites opcionales (ej: max = hoy para no permitir fechas futuras)
+        if (campo.max != null) input.max = campo.max;
+        if (campo.min != null) input.min = campo.min;
       }
 
       inputs[campo.name] = input;
@@ -182,3 +193,52 @@ function abrirModal(titulo, campos) {
     document.addEventListener("keydown", alPresionarTecla);
   });
 }
+
+// ============================================================
+//  5) NAVEGACIÓN POR EL DOM (tabs del header + enlaces del footer)
+// ============================================================
+
+// Hace que las tabs del header Y los enlaces del footer naveguen, usando el
+// MISMO mecanismo que los botones de cada tarjeta (localStorage + window.location).
+// Engancha a CUALQUIER elemento con [data-nav].
+//   - "Departamentos" siempre está disponible (index.html).
+//   - "Empleados" necesita un departamento elegido; si no hay, queda deshabilitado.
+//   - "Asistencias" necesita un empleado elegido; si no hay, queda deshabilitado.
+// El elemento de la página actual (is-active) no navega.
+function activarNavegacion() {
+  const items = document.querySelectorAll("[data-nav]");
+  const hayDepto = !!localStorage.getItem("departamentoId");
+  const hayEmpleado = !!localStorage.getItem("empleadoId");
+
+  const destinos = {
+    departamentos: "index.html",
+    empleados: "empleados.html",
+    asistencias: "asistencias.html",
+  };
+
+  items.forEach((item) => {
+    // El elemento de la página actual no hace nada
+    if (item.classList.contains("is-active")) return;
+
+    const destino = item.dataset.nav;
+
+    // ¿Está disponible según lo que ya haya elegido el usuario?
+    let disponible = true;
+    if (destino === "empleados") disponible = hayDepto;
+    if (destino === "asistencias") disponible = hayEmpleado;
+
+    if (!disponible) {
+      // Sin selección previa no hay nada para mostrar: lo deshabilitamos
+      item.classList.add("is-disabled");
+      item.setAttribute("aria-disabled", "true");
+      return;
+    }
+
+    item.addEventListener("click", () => {
+      window.location.href = destinos[destino];
+    });
+  });
+}
+
+// Se activa en las TRES páginas (utils.js se carga en todas)
+document.addEventListener("DOMContentLoaded", activarNavegacion);

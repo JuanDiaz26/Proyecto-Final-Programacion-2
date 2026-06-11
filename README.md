@@ -29,15 +29,19 @@ borran sus empleados y, de cada empleado, sus asistencias.
 ### Stack utilizado
 
 - **HTML5** para la estructura de las páginas.
-- **CSS con Bootstrap 5** (por CDN) como base, más un **tema propio** (`css/styles.css`) que
-  le da el aspecto moderno y claro: tarjetas, avatares con iniciales, colores por estado y
-  **ventanas modales** propias para editar.
+- **CSS con Bootstrap 5** (por CDN) solo como reset base, más un **tema propio editorial**
+  (`css/styles.css`) que define toda la identidad: paleta sobria con **un solo color de acento**
+  (coral), bordes finitos (*hairline*), esquinas casi rectas, tipografía protagonista
+  (**Space Grotesk**, **Inter** y **JetBrains Mono** por Google Fonts), **ventanas modales**
+  propias y un **footer** en franja oscura. Todo se controla desde **tokens** (variables CSS
+  en `:root`): cambiando ese bloque cambia la identidad entera.
 - **JavaScript puro (vanilla)** — sin React, sin Vue, sin frameworks. Las funciones comunes a
   las tres páginas viven en un único archivo `js/utils.js` (para no repetir código).
 - **Axios** (por CDN) para hacer las peticiones HTTP a la API. Todas las llamadas están
   envueltas en `try/catch` para avisar con un mensaje claro si la API está caída.
 - **json-server** como **API REST fake**: convierte el archivo `db.json` en una API real
   con los endpoints `/departamentos`, `/empleados` y `/asistencias`.
+- **Favicon propio** (`favicon.svg`): monograma "RH" hecho en SVG con la misma paleta.
 
 ### Estructura de archivos
 
@@ -47,12 +51,13 @@ Proyecto Final - Programacion 2/
 ├── empleados.html      → CRUD de Empleados (del departamento elegido)
 ├── asistencias.html    → CRUD de Asistencias (del empleado elegido)
 ├── js/
-│   ├── utils.js        → funciones compartidas (API, avatares, fechas, errores, modal)
+│   ├── utils.js        → compartido (API, códigos, fechas, errores, modal, navegación)
 │   ├── departamentos.js
 │   ├── empleados.js
 │   └── asistencias.js
 ├── css/
-│   └── styles.css      → tema visual propio (look moderno sobre Bootstrap) + modal
+│   └── styles.css      → tema editorial: tokens + componentes + modal + footer
+├── favicon.svg         → ícono propio (monograma "RH")
 ├── db.json             → "base de datos" con datos de ejemplo
 └── README.md
 ```
@@ -136,6 +141,54 @@ el **mismo** que usa el `<input type="date">` y `db.json`.
 
 ---
 
+## 1.c) Mejoras de la tercera versión (rediseño + validaciones)
+
+En esta entrega le dimos **identidad visual propia** y cerramos varios **errores lógicos** que
+habíamos detectado probando. Resumen para la defensa:
+
+### Mejora 5 — Rediseño visual editorial (identidad propia)
+
+Cambiamos por completo la **capa visual** (sin tocar la lógica): estilo **editorial/suizo** con
+tipografía protagonista, mucho aire y **cero decoración**. Lo importante para explicar:
+- **Tokens en `:root`**: colores, tipografías, radios y espaciados están centralizados en
+  variables CSS. Ningún componente usa valores "a mano": todos referencian las variables, así
+  se puede cambiar la identidad entera tocando un solo lugar.
+- **Un solo color de acento** (coral), bordes *hairline* de 1px (nada de sombras), esquinas
+  casi rectas, y tres tipografías con un rol claro (display / cuerpo / monoespaciada).
+- En vez del avatar de letra con degradé, cada tarjeta lleva un **cuadradito + un código corto
+  en mono** (departamento: `SIS`, `RH`, `VEN`…; empleado: sus iniciales).
+- **Favicon propio** (`favicon.svg`) y **footer** en franja oscura con los datos del equipo.
+
+### Mejora 6 — Validación de duplicados y datos
+
+Antes se podía crear basura: dos departamentos con el mismo nombre, empleados repetidos, o
+varias asistencias del mismo día. Lo cerramos con un `GET` de chequeo **antes** de cada `POST`:
+- **Departamentos:** no se permite repetir el **nombre** (comparado sin distinguir
+  mayúsculas/espacios), ni al crear ni al editar.
+- **Empleados:** si ya hay alguien con ese nombre en el departamento, **avisa y deja confirmar**
+  (no bloquea, porque dos personas pueden llamarse igual).
+- **Asistencias:** no se permite **dos veces el mismo día** para el mismo empleado.
+- **`.trim()`** en todos los campos: no entran textos que sean solo espacios.
+
+### Mejora 7 — Registrar asistencia en cualquier fecha
+
+Antes solo se podía registrar "hoy". Ahora el botón abre el **modal** con dos campos: **fecha**
+(por defecto hoy, sin permitir futuro) y **estado**. Reglas:
+- No se puede una fecha **futura**.
+- Si cargás **hoy** y falta **ayer**, te **avisa** (sin trabarte).
+- El historial se **ordena por fecha** (no por `id`), así una fecha vieja cargada hoy queda en
+  su lugar cronológico correcto.
+
+### Mejora 8 — Navegación por el DOM en tabs y footer
+
+Las **tabs del header** y los **enlaces del footer** ahora navegan (antes eran solo
+indicadores), usando el **mismo mecanismo** que los botones de las tarjetas (`localStorage` +
+`window.location.href`). Una sola función, `activarNavegacion()`, engancha a cualquier elemento
+con `data-nav`. "Empleados" y "Asistencias" quedan **deshabilitados** si todavía no se eligió un
+departamento/empleado (no habría nada que mostrar).
+
+---
+
 ## 2) Práctica — Explicación del código
 
 Cada archivo JavaScript maneja **una página** y tiene sus funciones **separadas por
@@ -184,9 +237,9 @@ const API = "http://localhost:3000";
 en los tres archivos. Por eso la quitamos de cada página: dejarla dos veces daría error
 (`const` no se puede declarar dos veces con el mismo nombre).
 
-#### Avatares: `GRADIENTES`, `iniciales()` y `gradienteAvatar()`
-Son las mismas funciones del avatar de antes (iniciales de un nombre y color fijo según la
-primera letra), pero ahora **una sola vez** para que las usen tanto departamentos como empleados.
+#### Identificadores de tarjeta: `iniciales()` y `codigoDepartamento()`
+Con el rediseño, la tarjeta ya no usa un avatar de letra con color: usa un **cuadradito + un
+código corto en mono**. Estas dos funciones arman ese código.
 
 ```js
 function iniciales(nombre) {
@@ -196,18 +249,38 @@ function iniciales(nombre) {
   return (primera + ultima).toUpperCase();
 }
 ```
-**[MEDIA]** `split(" ")` parte el nombre en palabras; tomamos la primera letra de la primera y de
-la última (`"Laura Martínez"` → `"LM"`) y las pasamos a mayúscula.
+**[MEDIA]** Iniciales de un empleado. `split(" ")` parte el nombre en palabras; tomamos la primera
+letra de la primera y de la última (`"Laura Martínez"` → `"LM"`) y las pasamos a mayúscula.
 
-#### `fechaHoyISO()` — fecha de hoy en formato ISO
+```js
+const CODIGOS_DEPARTAMENTO = { /* "Ventas": "VTA"  (override opcional) */ };
+
+function codigoDepartamento(nombre) {
+  const limpio = nombre.trim();
+  if (CODIGOS_DEPARTAMENTO[limpio]) return CODIGOS_DEPARTAMENTO[limpio];
+  const palabras = limpio.split(/\s+/);
+  if (palabras.length > 1) return palabras.map((p) => p[0]).join("").toUpperCase();
+  return limpio.slice(0, 3).toUpperCase();
+}
+```
+**[DIFÍCIL]** Código del departamento. Si está en el objeto de **override** lo usa; si no, lo
+calcula: varias palabras → iniciales (`"Recursos Humanos"` → `"RH"`); una sola → primeras 3
+letras (`"Sistemas"` → `"SIS"`, `"Ventas"` → `"VEN"`).
+
+#### `fechaHoyISO()` y `fechaRelativaISO(dias)` — fechas en formato ISO
 ```js
 function fechaHoyISO() {
   return new Date().toISOString().slice(0, 10);
 }
+function fechaRelativaISO(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
 ```
-**[MEDIA]** `new Date()` es la fecha y hora de ahora. `toISOString()` la pasa a texto ISO
-(`"2026-06-10T14:03:...Z"`) y `slice(0, 10)` se queda con los **primeros 10 caracteres**
-(`"2026-06-10"`). Así la asistencia nueva queda con el **mismo formato** que el resto de los datos.
+**[MEDIA]** `toISOString()` da la fecha como texto (`"2026-06-10T..."`) y `slice(0, 10)` se queda
+con `"2026-06-10"`. `fechaRelativaISO(-1)` devuelve **ayer** (lo usamos para avisar si falta
+registrar el día anterior).
 
 #### `manejarError(error, accion)` — avisar cuando algo falla
 ```js
@@ -301,17 +374,23 @@ departamentos.forEach((depto) => {
 función que lo dibuja. Es el bucle que arma la lista.
 
 #### `renderizarDepartamento(depto)` — RENDERIZAR
-Crea en el DOM la tarjeta (`.tile`) de **un** departamento: avatar con iniciales, nombre,
-responsable, el conteo de empleados y los botones.
+Crea en el DOM la tarjeta (`.tile`) de **un** departamento: identificador (cuadradito + código),
+nombre, responsable, el conteo de empleados y los botones.
 
 ```js
-const avatar = document.createElement("div");
-avatar.className = "avatar";
-avatar.textContent = iniciales(depto.nombre);
-avatar.style.background = gradienteAvatar(depto.nombre);
+const tileId = document.createElement("div");
+tileId.className = "tile-id";
+const mark = document.createElement("span");
+mark.className = "mark";              // el cuadradito (color desde el CSS)
+const code = document.createElement("span");
+code.className = "code";
+code.textContent = codigoDepartamento(depto.nombre);  // "SIS", "RH", "VEN"...
+tileId.appendChild(mark);
+tileId.appendChild(code);
 ```
-**[MEDIA]** `createElement` crea la etiqueta desde JS; `textContent` le pone las iniciales y
-`style.background` el color. Las iniciales y el color salen de dos funciones auxiliares (más abajo).
+**[MEDIA]** `createElement` crea las etiquetas desde JS; el **cuadradito** (`.mark`) se pinta con
+CSS y el **código** (`.code`) sale de `codigoDepartamento()`. Reemplazó al viejo avatar de letra
+con degradé.
 
 ```js
 verBtn.addEventListener("click", () => verEmpleados(depto.id));
@@ -328,11 +407,14 @@ listaDepartamentos.appendChild(tile);
 
 ```js
 const total = await contarEmpleados(depto.id);
-cantidad.textContent = total === 1 ? "1 empleado" : `${total} empleados`;
+const num = document.createElement("span");
+num.textContent = String(total).padStart(2, "0");   // "02"
+cantidad.appendChild(num);
+cantidad.append(total === 1 ? " empleado" : " empleados");
 ```
 **[DIFÍCIL]** La tarjeta ya se dibujó; recién ahí pedimos cuántos empleados tiene y completamos
-el cartelito (al final, para no alterar el orden). El **condicional** elige singular
-("1 empleado") o plural ("3 empleados").
+el cartelito (al final, para no alterar el orden). `padStart(2, "0")` agrega el **cero a la
+izquierda** (`"02"`) y el **condicional** elige singular ("empleado") o plural ("empleados").
 
 #### `contarEmpleados(id)` — conteo de empleados por departamento
 ```js
@@ -406,27 +488,11 @@ window.location.href = "empleados.html";
 **[MEDIA]** Guardamos el id en **`localStorage`** (memoria del navegador que sobrevive al
 cambio de página) y navegamos. Así pasamos el dato de una página a otra **sin query strings**.
 
-#### `iniciales(nombre)` y `gradienteAvatar(nombre)` — AUXILIARES DEL AVATAR
-```js
-function iniciales(nombre) {
-  const partes = nombre.trim().split(" ");
-  const primera = partes[0][0];
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primera + ultima).toUpperCase();
-}
-```
-**[MEDIA]** Devuelve las iniciales de un nombre. `split(" ")` parte el texto en palabras, toma
-la primera letra de la primera y de la última (`"Laura Martínez"` → `"LM"`) y las pasa a
-mayúscula con `toUpperCase()`.
-```js
-function gradienteAvatar(nombre) {
-  const indice = nombre.charCodeAt(0) % GRADIENTES.length;
-  return GRADIENTES[indice];
-}
-```
-**[DIFÍCIL]** Elige un color fijo para el avatar según el nombre. `charCodeAt(0)` toma el
-código de la primera letra y con `%` (resto de la división) obtiene un índice válido del
-array `GRADIENTES`. Mismo nombre → siempre el mismo color.
+#### Identificador de la tarjeta: `codigoDepartamento(nombre)`
+El cuadradito + código que va arriba del nombre usa `codigoDepartamento()`, que vive en
+`js/utils.js` (ya explicado arriba): si el nombre está en el objeto de override lo usa, si no
+calcula el código (varias palabras → iniciales; una sola → primeras 3 letras). El cuadradito
+es puro CSS (`.mark`), no lleva color por nombre: el que diferencia es el **código**.
 
 ---
 
@@ -462,9 +528,9 @@ respuesta.data.forEach((empleado) => renderizarEmpleado(empleado));
 `forEach` para dibujarlos.
 
 #### `renderizarEmpleado(empleado)` — RENDERIZAR
-Igual que en departamentos: crea la tarjeta (`.tile`) con `createElement`/`appendChild`, con
-su **avatar de iniciales** (usando `iniciales()` y `gradienteAvatar()`), el nombre, el cargo,
-la fecha de ingreso y los botones con `addEventListener`. **[FÁCIL/MEDIA]**
+Igual que en departamentos: crea la tarjeta (`.tile`) con `createElement`/`appendChild`, con su
+**cuadradito + código en mono** (acá el código son las `iniciales()` del empleado), el nombre, el
+cargo, la fecha de ingreso y los botones con `addEventListener`. **[FÁCIL/MEDIA]**
 
 #### `crearEmpleado(evento)` — CREAR (POST)
 ```js
@@ -538,28 +604,32 @@ Guarda `empleadoId` en `localStorage` y va a `asistencias.html`. **[MEDIA]**
 
 #### `cargarAsistencias()` — LEER + ORDENAR
 ```js
-asistencias.sort((a, b) => b.id - a.id);
+asistencias.sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id);
 ```
-**[DIFÍCIL]** **Ordenamiento del más reciente al más antiguo.** `sort` ordena el array; con
-`b.id - a.id` ordena de **mayor a menor id**. Como json-server asigna ids crecientes, el id
-más alto es el registro más nuevo → queda primero el más reciente.
+**[DIFÍCIL]** **Ordenamiento por fecha, de la más reciente a la más antigua.** Como la fecha está
+en formato ISO (`AAAA-MM-DD`), `localeCompare` compara los **textos** y eso ya da el orden
+cronológico. Si dos asistencias son del **mismo día**, desempata el `id` (`b.id - a.id`). *¿Por
+qué por fecha y no por id?* Porque ahora se pueden cargar fechas pasadas (ej: ayer); si ordenáramos
+por id, una fecha vieja cargada hoy quedaría arriba de todo.
 ```js
 asistencias.forEach((asistencia) => renderizarAsistencia(asistencia));
 ```
 **[MEDIA]** Recorre las asistencias **ya ordenadas** y las dibuja.
 
 #### `renderizarAsistencia(asistencia)` — RENDERIZAR
-Arma una fila (`.row-item`) con un ícono de calendario coloreado según el estado, la fecha,
-el selector de estado y el botón de eliminar.
+Arma una fila (`.row-item`) con un **cuadradito de estado + el texto del estado** (siempre
+visible), la fecha, el selector de estado y el botón de eliminar.
 ```js
 const claseColor = "is-" + asistencia.estado.toLowerCase();
-const icono = document.createElement("div");
-icono.className = "row-icon " + claseColor;
-icono.innerHTML = ICONO_CALENDARIO;
+const marca = document.createElement("span");
+marca.className = "row-icon " + claseColor;          // cuadradito coloreado por estado
+const estadoTexto = document.createElement("span");
+estadoTexto.className = "row-state " + claseColor;
+estadoTexto.textContent = asistencia.estado;          // texto SIEMPRE visible
 ```
-**[MEDIA]** Armamos el nombre de la clase de color desde el estado (`"Presente"` →
-`"is-presente"`) y se la sumamos al ícono; el CSS lo pinta verde / rojo / ámbar. `innerHTML`
-mete el dibujo SVG del calendario dentro del recuadro.
+**[MEDIA]** Armamos la clase de color desde el estado (`"Presente"` → `"is-presente"`); el CSS
+pinta el cuadradito y el texto con `--ink` / `--muted` / `--accent`. Mostramos **siempre el texto
+del estado** al lado (accesibilidad: no dependemos solo del color).
 ```js
 ESTADOS.forEach((estado) => {
   const opcion = document.createElement("option");
@@ -576,19 +646,37 @@ select.addEventListener("change", () => editarAsistencia(asistencia.id, select.v
 ```
 **[MEDIA]** Cuando el usuario cambia el estado en el selector, se guarda automáticamente.
 
-#### `crearAsistencia()` — CREAR (POST)
+#### `crearAsistencia()` — CREAR (POST) **[ahora con modal: fecha + estado]**
 ```js
-fecha: fechaHoyISO(),   // fecha de hoy en formato ISO (AAAA-MM-DD)
-estado: "Presente",
+const hoy = fechaHoyISO();
+const datos = await abrirModal("Registrar asistencia", [
+  { name: "fecha", label: "Fecha", type: "date", value: hoy, max: hoy },
+  { name: "estado", label: "Estado", type: "select", value: "Presente",
+    options: ESTADOS.map((e) => ({ value: e, label: e })) },
+]);
+if (!datos) return;
+if (datos.fecha > hoy) { alert("No se puede registrar una fecha futura."); return; }
 ```
-**[MEDIA]** La **fecha se pone automática** (la de hoy) y el estado arranca en "Presente". Usamos
-`fechaHoyISO()` (de `utils.js`) para que quede en el **mismo formato** que el resto de los datos
-(`2025-06-12`), y no en formato local (`10/6/2026`) como antes.
+**[DIFÍCIL]** Abrimos el modal con **fecha** (por defecto hoy, y `max: hoy` para que el calendario
+no deje elegir futuro) y **estado**. El `if (datos.fecha > hoy)` es la red de seguridad por las
+dudas (comparación de textos ISO).
 ```js
-await axios.post(`${API}/asistencias`, nueva);
+// No duplicar el día
+const mismaFecha = (await axios.get(`${API}/asistencias?empleadoId=${empleadoId}&fecha=${datos.fecha}`)).data;
+if (mismaFecha.length > 0) { alert("Ya hay una asistencia para esa fecha."); return; }
+
+// Aviso si falta ayer (solo cuando se carga hoy)
+if (datos.fecha === hoy) {
+  const ayer = fechaRelativaISO(-1);
+  const deAyer = (await axios.get(`${API}/asistencias?empleadoId=${empleadoId}&fecha=${ayer}`)).data;
+  if (deAyer.length === 0 && !confirm("Te falta registrar ayer. ¿Registrás hoy igual?")) return;
+}
+await axios.post(`${API}/asistencias`, { empleadoId: Number(empleadoId), fecha: datos.fecha, estado: datos.estado });
 cargarAsistencias();
 ```
-**[MEDIA]** Crea la asistencia y vuelve a dibujar todo para que la nueva quede **arriba**.
+**[DIFÍCIL]** Antes de crear: con un `GET` filtrado por `empleadoId` **y** `fecha` chequeamos que
+no haya ya una asistencia ese día (si hay, cortamos). Si se está cargando **hoy** y falta **ayer**,
+avisamos con `confirm` (pero no trabamos). Recién entonces hacemos el `POST` y redibujamos.
 
 #### `editarAsistencia(id, nuevoEstado)` — ACTUALIZAR (PATCH)
 ```js
@@ -618,13 +706,16 @@ cascada).
 | `localStorage` | `setItem` al navegar, `getItem` al cargar la página siguiente |
 | Conteo por departamento | `contarEmpleados()` con `.length` |
 | Eliminación en cascada | `eliminarDepartamento()` y `eliminarEmpleado()` |
-| Ordenamiento | `asistencias.sort((a, b) => b.id - a.id)` |
-| Avatares (iniciales + color) | `iniciales()` y `gradienteAvatar()` (`split`, `charCodeAt`, `%`) |
+| Ordenamiento | `asistencias.sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id)` |
+| Identificador de tarjeta | cuadradito + código en mono (`iniciales()` / `codigoDepartamento()`) |
 | Condicional singular/plural | conteo en `renderizarDepartamento()` |
 | **Código compartido (DRY)** | `js/utils.js` (lo usan las tres páginas) |
 | **Promesas** | `abrirModal()` devuelve `new Promise`; se usa con `await` |
 | **Manejo de errores** | `try/catch` en cada llamada + `manejarError()` |
-| **Fecha ISO** | `fechaHoyISO()` en `crearAsistencia()` |
+| **Fecha ISO** | `fechaHoyISO()` / `<input type="date">` en `crearAsistencia()` |
+| **Validación de duplicados** | `GET` + `some()` antes del `POST` (depto/empleado/asistencia) |
+| **Navegación por el DOM** | `activarNavegacion()` en tabs y footer (`data-nav`) |
+| **Tokens / identidad** | variables CSS en `:root` (`css/styles.css`) |
 
 ---
 
@@ -644,49 +735,49 @@ integrante (**Objetos, Arrays, Métodos y Bucles**) se repartieron: los **métod
 con Luciano (que maneja los datos de la API) y los **objetos / estructura de datos** van con
 Constanza (que maneja el CRUD).
 
-### 🟦 Juan Diaz — DOM, Navegación y el Modal
+### 🟦 Juan Diaz — DOM, Navegación e Identidad visual
 
 **Teoría a exponer:**
-- Qué es el **DOM** (el árbol de elementos de la página que JS puede modificar).
+- Qué es el **DOM** (el árbol de elementos que JS puede modificar).
 - **Eventos** y `addEventListener` (click, submit, change, y la tecla Escape en el modal).
 - **Render dinámico**: crear contenido desde JS con `createElement`, `appendChild`,
-  `textContent`, `innerHTML` y `style`.
-- **Navegación entre páginas con `localStorage`** (en vez de query strings).
-- **El modal propio** (`abrirModal`): cómo se construye una ventana emergente con JS puro.
-- **Avatares**: `split`, `charCodeAt` y `%` para sacar iniciales y un color fijo por nombre.
+  `textContent` y `style`.
+- **Navegación con `localStorage`** (en vez de query strings): en los botones de las tarjetas y
+  ahora también en las **tabs del header y los enlaces del footer**.
+- **El modal propio** (`abrirModal`): cómo se arma una ventana emergente con JS puro.
+- **Identidad visual con tokens CSS**: cómo `:root` centraliza colores y tipografías, y por qué
+  el **cuadradito + código en mono** reemplazó al viejo avatar.
 
 **Qué se hizo y por qué así:**
-- El HTML **solo tiene contenedores vacíos** (`<div id="listaDepartamentos">`, etc.) y
-  **todo el contenido lo crea el JavaScript**. *¿Por qué?* La consigna pide manipular el DOM
-  dinámicamente y que los datos vengan de la API, no escritos a mano en el HTML.
-- La navegación se hace con **botones creados/asignados por JS + `localStorage`**, no con la
-  URL. *¿Por qué localStorage?* Hay que pasar el id elegido de una página a la siguiente, y la
-  consigna pide explícitamente usar localStorage en lugar de query strings.
-- La barra de arriba (*Departamentos › Empleados › Asistencias*) es **solo un indicador
-  visual, no navega**. *¿Por qué?* Empleados necesita un departamento elegido y Asistencias un
-  empleado elegido; sin ese id la página no sabría qué mostrar.
-- Los **avatares con iniciales** se dibujan con `createElement` + `style.background`. *¿Por
-  qué?* Para que la interfaz no dependa de imágenes externas: el "ícono" es puro DOM + CSS.
-- **El `prompt()` se reemplazó por un modal propio** (Mejora 2). *¿Por qué?* Queda mucho más
-  profesional y permite mostrar todos los campos juntos (incluido un `<select>`). El modal se
-  arma **enteramente con el DOM**: `createElement` para el fondo, la caja, el formulario, los
-  inputs y los botones, y `appendChild` para colgarlos; al cerrar, `overlay.remove()` lo saca.
+- El HTML **solo tiene contenedores vacíos** y **todo el contenido lo crea el JavaScript**.
+  *¿Por qué?* La consigna pide manipular el DOM dinámicamente con datos de la API.
+- La navegación pasa el id elegido por **`localStorage`** y cambia de página con
+  `window.location.href`. *¿Por qué localStorage?* La consigna pide usarlo en vez de query strings.
+- **Las tabs del header y los enlaces del footer ahora navegan** (antes eran solo indicadores).
+  Una sola función, `activarNavegacion()`, engancha a cualquier elemento con `data-nav`.
+  *¿Por qué se deshabilitan "Empleados"/"Asistencias" a veces?* Porque necesitan un
+  departamento/empleado ya elegido; sin esa selección no habría nada que mostrar.
+- En vez del avatar de letra con degradé, cada tarjeta muestra un **cuadradito + un código corto
+  en mono** (`createElement` + clases CSS). *¿Por qué?* Identidad propia, sin imágenes externas.
+- **El `prompt()` se reemplazó por un modal propio**, armado **enteramente con el DOM**
+  (`createElement` del fondo, la caja, el formulario, los inputs y los botones; `overlay.remove()`
+  al cerrar).
+- **Rediseño editorial con tokens**: toda la identidad (colores, tipografías, radios, espaciados)
+  vive en variables CSS en `:root`. *¿Por qué?* Para cambiar el estilo entero desde un solo lugar.
+  El **footer** es una franja oscura con los datos del equipo.
 
 **Código concreto a mostrar:**
-- `renderizarDepartamento()`, `renderizarEmpleado()`, `renderizarAsistencia()`
-  (`createElement` + `appendChild` + `textContent` + `style`).
-- `abrirModal()` en `utils.js`: la parte donde **construye el formulario en el DOM** y arma el
-  `<select>` con sus `<option>` (createElement/appendChild dentro de un `forEach`).
-- `verEmpleados()` y `verAsistencias()` (`localStorage.setItem` + `window.location.href`).
-- Los `addEventListener` de los botones, del **submit**, del **change** del selector de estado
-  y del **keydown** (Escape) que cierra el modal.
-- `iniciales()` y `gradienteAvatar()` (`split`, `charCodeAt`, `%`), y `ICONO_CALENDARIO` con
-  `innerHTML`.
+- `renderizarDepartamento()` / `renderizarEmpleado()` / `renderizarAsistencia()`
+  (`createElement` + `appendChild` + `textContent`) y el cuadradito + código (`codigoDepartamento`).
+- `abrirModal()` en `utils.js`: cómo construye el formulario y el `<select>` en el DOM.
+- `activarNavegacion()` (tabs + footer con `data-nav`), y `verEmpleados()` / `verAsistencias()`
+  (`localStorage.setItem` + `window.location.href`).
+- El bloque de **tokens** en `:root` de `css/styles.css` y el `<footer>` de las páginas.
 
-*Cómo presentarlo:* abrir `index.html`, mostrar que el `<div id="listaDepartamentos">` está
-vacío y que las tarjetas aparecen porque las crea el JS. Hacer clic en "Editar" para mostrar el
-**modal** apareciendo (y cerrarlo con Escape). Después, en DevTools → Application → Local
-Storage, mostrar cómo se guardó el `departamentoId` al navegar.
+*Cómo presentarlo:* abrir `index.html`, mostrar que la lista está vacía en el HTML y que las
+tarjetas las crea el JS. Mostrar el **modal** al editar (cerrarlo con Escape), las **tabs/footer**
+navegando (y deshabilitadas sin selección), y en DevTools → Application → Local Storage el
+`departamentoId` guardado.
 
 ---
 
@@ -722,15 +813,22 @@ Storage, mostrar cómo se guardó el `departamentoId` al navegar.
 - **`map`** arma las opciones del `<select>` en `editarEmpleado()`. *¿Por qué map y no forEach?*
   Porque `map` **devuelve un array nuevo** transformado (cada depto → `{ value, label }`),
   justo lo que necesita el modal.
+- **Chequeo de duplicados con un `GET` antes del `POST`**: traemos la lista (o la filtrada) y
+  comparamos con `some()`. *¿Por qué un GET extra?* json-server no tiene "campos únicos", así que
+  la unicidad la validamos nosotros antes de crear.
+- **El orden de asistencias pasó a ser por `fecha`** (no por `id`): como la fecha es ISO,
+  comparar los textos da el orden cronológico (`b.fecha.localeCompare(a.fecha)`). *¿Por qué?* Para
+  que una fecha vieja cargada hoy quede en su lugar y no arriba de todo.
 
 **Código concreto a mostrar:**
 - `cargarDepartamentos()` / `cargarEmpleados()` / `cargarAsistencias()` (`axios.get` +
   `response.data` + `forEach` para recorrer).
-- `crearDepartamento()` / `crearEmpleado()` / `crearAsistencia()` (`axios.post`).
+- `crearDepartamento()` / `crearEmpleado()` / `crearAsistencia()` (`axios.post`), con el
+  **`GET` de chequeo + `some()`** antes de crear.
 - `editarAsistencia()` / `editarDepartamento()` / `editarEmpleado()` (`axios.patch`).
 - `eliminarAsistencia()` (`axios.delete`) y `contarEmpleados()` (filtro + `.length`).
 - `manejarError()` y el `try { ... } catch (error) { manejarError(...) }` que envuelve todo.
-- `new Promise(...)` / `resolve(...)` dentro de `abrirModal()`, y `map` + `sort` sobre los datos.
+- `new Promise(...)` / `resolve(...)` dentro de `abrirModal()`, y `map` + `sort` por fecha.
 
 *Cómo presentarlo:* levantar `json-server` en vivo, abrir `http://localhost:3000/empleados`
 para mostrar la API, y explicar el viaje pedido → respuesta → `response.data` → pantalla.
@@ -769,17 +867,26 @@ para mostrar la API, y explicar el viaje pedido → respuesta → `response.data
   viendo: se respeta la relación entre las tablas. *(Antes había que validar el id a mano con
   `find`; ahora, como el `<select>` solo ofrece opciones reales, esa validación ya no hace
   falta.)*
+- **Validación de duplicados** (todas son condicionales): departamentos no repiten **nombre**
+  (bloquea), empleados avisan con `confirm` si el nombre ya existe (deja seguir), y asistencias
+  no se cargan **dos veces el mismo día** (bloquea). Más `.trim()` para no aceptar espacios
+  vacíos. *¿Por qué distinto en cada caso?* Un área no se repite; una persona sí puede llamarse
+  igual; un día de asistencia es único por empleado.
+- **Registrar asistencia en cualquier fecha**: el modal pide **fecha** (por defecto hoy, sin
+  permitir futuro) y **estado**. Si falta el día anterior, **avisa** (no traba). Todo con
+  `if`/`return`/`confirm`. *¿Por qué?* Para poder cargar días pasados (ej: ayer) sin romper nada.
 
 **Código concreto a mostrar:**
 - La estructura de `db.json` (las tres "tablas" y sus relaciones) y los objetos `nuevo`/`nueva`
   de `crearEmpleado()` / `crearAsistencia()`.
 - `eliminarDepartamento()` (cascada completa: asistencias → empleados → departamento) y
   `eliminarEmpleado()` (cascada: asistencias → empleado), con el `for...of` + `await`.
-- `editarDepartamento()` / `editarEmpleado()`: el flujo con el modal y las validaciones
-  (`if (!datos) return`, `if (!datos.nombre || ...) { alert; return }`).
+- Las **validaciones de duplicados** en `crearDepartamento()` / `crearEmpleado()` /
+  `crearAsistencia()` (chequeo + `if`/`return`/`confirm`) y el `.trim()` de los campos.
+- `editarDepartamento()` / `editarEmpleado()`: el flujo con el modal y las validaciones.
 - Los `confirm(...)` y el condicional singular/plural del conteo en `renderizarDepartamento()`.
 
-*Cómo presentarlo:* borrar un departamento en vivo y mostrar (en las URLs de la API) que
-también desaparecen sus empleados y asistencias. Abrir el **modal** de editar y mostrar que, si
-se deja un campo vacío, salta la validación; y reasignar un empleado a otro departamento usando
-la lista desplegable.
+*Cómo presentarlo:* borrar un departamento en vivo y mostrar que desaparecen sus empleados y
+asistencias. Intentar crear un departamento repetido (lo bloquea) y un empleado repetido (avisa).
+En Asistencias, registrar **ayer** y **hoy** desde el modal, e intentar duplicar un día o poner
+una fecha futura (no deja).

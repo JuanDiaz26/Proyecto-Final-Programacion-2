@@ -161,14 +161,36 @@ function renderizarEmpleado(empleado) {
 async function crearEmpleado(evento) {
   evento.preventDefault();
 
-  const nuevo = {
-    nombre: inputNombre.value,
-    cargo: inputCargo.value,
-    fechaIngreso: inputFecha.value,
-    departamentoId: Number(departamentoId), // lo guardamos como número
-  };
+  // .trim() para que no entren campos con solo espacios
+  const nombre = inputNombre.value.trim();
+  const cargo = inputCargo.value.trim();
+  const fechaIngreso = inputFecha.value;
+
+  if (!nombre || !cargo || !fechaIngreso) {
+    alert("Completá nombre, cargo y fecha de ingreso.");
+    return;
+  }
 
   try {
+    // Aviso (NO bloqueo): los nombres de personas pueden repetirse de verdad,
+    // así que solo avisamos y dejamos que el usuario decida.
+    const delDepto = (await axios.get(`${API}/empleados?departamentoId=${departamentoId}`)).data;
+    const yaExiste = delDepto.some(
+      (e) => e.nombre.trim().toLowerCase() === nombre.toLowerCase()
+    );
+    if (yaExiste) {
+      const seguir = confirm(
+        `Ya hay un empleado llamado "${nombre}" en este departamento. ¿Lo agrego igual?`
+      );
+      if (!seguir) return;
+    }
+
+    const nuevo = {
+      nombre,
+      cargo,
+      fechaIngreso,
+      departamentoId: Number(departamentoId), // lo guardamos como número
+    };
     const respuesta = await axios.post(`${API}/empleados`, nuevo);
 
     // Mostramos el nuevo empleado al instante
@@ -212,8 +234,11 @@ async function editarEmpleado(id) {
 
     if (!datos) return; // canceló
 
+    const nombre = datos.nombre.trim();
+    const cargo = datos.cargo.trim();
+
     // Validación: nombre y cargo no pueden quedar vacíos
-    if (!datos.nombre || !datos.cargo) {
+    if (!nombre || !cargo) {
       alert("Datos incompletos. No se guardaron los cambios.");
       return;
     }
@@ -222,8 +247,8 @@ async function editarEmpleado(id) {
     // lista (filtrada por el departamento actual) el empleado ya no aparecerá:
     // ahora pertenece a otra área.
     await axios.patch(`${API}/empleados/${id}`, {
-      nombre: datos.nombre,
-      cargo: datos.cargo,
+      nombre,
+      cargo,
       departamentoId: Number(datos.departamentoId),
     });
 
