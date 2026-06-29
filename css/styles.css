@@ -1,48 +1,32 @@
-/* ============================================================
-   PANEL RRHH · IDENTIDAD VISUAL — EDITORIAL / SUIZO
-   ------------------------------------------------------------
-   Filosofía: tipografía protagonista, grilla estricta, mucho
-   aire, bordes hairline, cero decoración. UN solo color de
-   acento. SOLO modo claro (sin dark mode, a propósito).
+/* ESTILOS DEL PANEL RRHH */
+/* TODOS LOS COLORES Y MEDIDAS ESTAN EN LAS VARIABLES DE :root, ASI CAMBIO TODO DE UN SOLO LUGAR */
 
-   Toda la identidad se controla desde los TOKENS de :root.
-   Ningún componente usa colores/medidas hardcodeadas: todo
-   referencia a las variables. Cambiando :root cambia todo.
-   ============================================================ */
-
-/* ============================================================
-   1) TOKENS  (única fuente de verdad)
-   ============================================================ */
 :root {
-  /* Forzamos esquema claro: la herramienta se ve igual aunque
-     el sistema operativo esté en modo oscuro. */
-  color-scheme: light;
+  color-scheme: light; /* SIEMPRE CLARO AUNQUE LA PC ESTE EN MODO OSCURO */
 
-  /* --- Color (un solo valor cada uno; no se invierten) --- */
-  --ink: #1A1A1A;              /* texto y elementos fuertes      */
-  --paper: #FAF9F6;            /* fondo, off-white cálido        */
-  --surface: #FFFFFF;          /* tarjetas / superficies         */
-  --muted: #6B6B6B;            /* texto secundario               */
-  --line: rgba(0, 0, 0, 0.12); /* bordes hairline                */
-  --accent: #D85A30;           /* ÚNICO acento (coral terracota) */
-  --danger: #A32D2D;           /* solo acciones destructivas     */
-  --on-ink-muted: rgba(250, 249, 246, 0.55); /* texto tenue sobre fondo --ink (footer) */
+  /* COLORES */
+  --ink: #1A1A1A;              /* TEXTO Y COSAS FUERTES */
+  --paper: #FAF9F6;            /* EL FONDO */
+  --surface: #FFFFFF;          /* LAS TARJETAS */
+  --muted: #6B6B6B;            /* TEXTO SECUNDARIO */
+  --line: rgba(0, 0, 0, 0.12); /* BORDES FINITOS */
+  --accent: #D85A30;           /* EL UNICO COLOR DE ACENTO (CORAL) */
+  --danger: #A32D2D;           /* SOLO PARA ELIMINAR */
+  --on-ink-muted: rgba(250, 249, 246, 0.55); /* TEXTO TENUE EN EL FOOTER OSCURO */
 
-  /* --- Tipografía --- */
+  /* TIPOGRAFIAS */
   --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Solo dos pesos reales: 400 y 500 (600 para énfasis puntual). Nada de 700+. */
   --w-regular: 400;
   --w-medium: 500;
   --w-semibold: 600;
 
-  /* --- Forma (casi recta) --- */
   --radius: 5px;
   --radius-sm: 3px;
 
-  /* --- Espaciado: baseline grid de 8px --- */
+  /* ESPACIADOS (DE A 8PX) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 16px;
@@ -51,13 +35,10 @@
   --space-6: 48px;
   --space-7: 64px;
 
-  /* --- Borde hairline reutilizable --- */
   --hairline: 1px solid var(--line);
 }
 
-/* ============================================================
-   2) BASE
-   ============================================================ */
+/* BASE */
 * { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -69,25 +50,24 @@ body {
   font-family: var(--font-body);
   font-weight: var(--w-regular);
   font-size: 15px;
-  line-height: 1.6;            /* ritmo de ~24px sobre la grilla de 8px */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Foco visible y consistente (accesibilidad) */
+/* QUE EL FOCO SE VEA (PARA ACCESIBILIDAD) */
 :focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-/* Selección de texto con el único acento */
 ::selection {
   background: var(--accent);
   color: var(--paper);
 }
 
-/* Ancho de contenido (sobreescribe el container de Bootstrap) */
+/* ANCHO DEL CONTENIDO */
 .container {
   width: 100%;
   max-width: 1080px;
@@ -96,9 +76,7 @@ body {
   padding-right: var(--space-4);
 }
 
-/* ============================================================
-   3) BARRA SUPERIOR  (wordmark de texto + tabs subrayadas)
-   ============================================================ */
+/* BARRA DE ARRIBA */
 .topbar {
   position: sticky;
   top: 0;
@@ -114,7 +92,7 @@ body {
   height: 64px;
 }
 
-/* Wordmark: reemplaza al viejo logo "HR" en cuadrado con degradé */
+/* EL NOMBRE DE LA APP */
 .wordmark {
   display: flex;
   align-items: baseline;
@@ -135,7 +113,7 @@ body {
   color: var(--muted);
 }
 
-/* Tabs: texto con subrayado de 2px en la activa (sin píldoras) */
+/* LAS TABS: LA ACTIVA LLEVA UNA RAYITA ABAJO */
 .tabs {
   display: flex;
   gap: var(--space-4);
@@ -154,15 +132,13 @@ body {
   border-bottom-color: var(--ink);
   cursor: default;
 }
-/* Tab no disponible (no hay selección previa): no navega */
+/* TAB QUE TODAVIA NO SE PUEDE USAR */
 .tab.is-disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* ============================================================
-   4) ENCABEZADO DE PÁGINA  (kicker mono + título display)
-   ============================================================ */
+/* ENCABEZADO DE CADA PAGINA */
 .page-head {
   display: flex;
   align-items: flex-end;
@@ -174,7 +150,6 @@ body {
 }
 .page-head-text { min-width: 0; }
 
-/* Kicker: etiqueta chica en mono, en mayúsculas, con tracking amplio */
 .kicker {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -198,7 +173,7 @@ body {
   max-width: 60ch;
 }
 
-/* Botón "Volver" (mono, discreto) */
+/* BOTON VOLVER */
 .back {
   display: inline-flex;
   align-items: center;
@@ -214,9 +189,7 @@ body {
 }
 .back:hover { color: var(--ink); }
 
-/* ============================================================
-   5) FORMULARIO  (barra de creación + inputs)
-   ============================================================ */
+/* EL FORMULARIO DE ARRIBA Y LOS INPUTS */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -241,17 +214,13 @@ body {
   transition: border-color 0.12s ease;
 }
 .field::placeholder { color: var(--muted); }
-/* Foco: solo cambia el borde a --ink, sin glow ni sombra de color */
+/* AL HACER FOCO SOLO SE OSCURECE EL BORDE */
 .field:focus {
   outline: none;
   border-color: var(--ink);
 }
 
-/* ============================================================
-   6) BOTONES
-   - primario: sólido --ink con texto --paper
-   - secundarios (Editar / Eliminar): links subrayados
-   ============================================================ */
+/* BOTONES: EL PRIMARIO ES NEGRO, EDITAR/ELIMINAR SON COMO LINKS */
 .button {
   font-family: var(--font-body);
   font-size: 0.88rem;
@@ -276,7 +245,6 @@ body {
 .button.primary:hover { background: #000000; }
 .button.small { padding: 7px 12px; font-size: 0.82rem; }
 
-/* Secundarios como links (van DESPUÉS para pisar a .small) */
 .button.ghost,
 .button.danger {
   background: none;
@@ -294,9 +262,7 @@ body {
 .button.danger { color: var(--danger); }
 .button.danger:hover { text-decoration-thickness: 2px; }
 
-/* ============================================================
-   7) TARJETAS  (departamentos / empleados)
-   ============================================================ */
+/* TARJETAS DE DEPARTAMENTOS Y EMPLEADOS */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -312,9 +278,8 @@ body {
   padding: var(--space-4);
   transition: border-color 0.12s ease;
 }
-.tile:hover { border-color: var(--ink); } /* sin sombra: solo el borde */
+.tile:hover { border-color: var(--ink); }
 
-/* Encabezado de tarjeta: identificador (cuadradito + código) sobre el nombre */
 .tile-head {
   display: flex;
   flex-direction: column;
@@ -325,7 +290,7 @@ body {
   align-items: center;
   gap: var(--space-2);
 }
-/* Cuadradito de 8px, monocromo --ink. El diferenciador es el CÓDIGO, no el color. */
+/* EL CUADRADITO DE 8PX */
 .mark {
   width: 8px;
   height: 8px;
@@ -376,7 +341,7 @@ body {
 }
 .mono { font-family: var(--font-mono); font-size: 0.82rem; }
 
-/* Contador de empleados en mono, formato "02 empleados" (sin píldora) */
+/* EL CONTADOR "02 EMPLEADOS" */
 .count {
   font-family: var(--font-mono);
   font-size: 0.8rem;
@@ -393,9 +358,7 @@ body {
   border-top: var(--hairline);
 }
 
-/* ============================================================
-   8) LISTA DE ASISTENCIAS  (filas separadas por hairline)
-   ============================================================ */
+/* LISTA DE ASISTENCIAS (FILAS) */
 .stack {
   display: flex;
   flex-direction: column;
@@ -417,8 +380,7 @@ body {
   color: var(--ink);
 }
 
-/* Marcador de estado: cuadradito + texto SIEMPRE visible (accesibilidad).
-   Sin verde/rojo/ámbar: solo --ink / --muted / --accent. */
+/* CUADRADITO DEL ESTADO. SIN VERDE/ROJO, SOLO INK/MUTED/ACCENT */
 .row-icon {
   width: 8px;
   height: 8px;
@@ -430,7 +392,7 @@ body {
 .row-icon.is-ausente { background: var(--muted); }
 .row-icon.is-tardanza { background: var(--accent); }
 
-/* Texto del estado, SIEMPRE visible (no dependemos solo del color) */
+/* EL TEXTO DEL ESTADO (SIEMPRE SE VE) */
 .row-state {
   font-family: var(--font-mono);
   font-size: 0.85rem;
@@ -439,7 +401,7 @@ body {
 .row-state.is-ausente { color: var(--muted); }
 .row-state.is-tardanza { color: var(--accent); }
 
-/* Selector de estado: borde hairline, sin píldora ni puntito */
+/* EL SELECT PARA CAMBIAR EL ESTADO */
 .status {
   appearance: none;
   -webkit-appearance: none;
@@ -460,9 +422,7 @@ body {
 .status.is-tardanza { color: var(--accent); }
 .status.is-ausente { color: var(--muted); }
 
-/* ============================================================
-   9) ESTADO VACÍO
-   ============================================================ */
+/* CUANDO NO HAY NADA CARGADO */
 .empty {
   grid-column: 1 / -1;
   text-align: center;
@@ -474,9 +434,7 @@ body {
   border-radius: var(--radius);
 }
 
-/* ============================================================
-   10) MODAL  (editar departamento / empleado)
-   ============================================================ */
+/* EL MODAL (LA VENTANITA PARA EDITAR) */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -520,10 +478,7 @@ body {
   margin-top: var(--space-4);
 }
 
-/* ============================================================
-   11) PIE DE PÁGINA
-   ============================================================ */
-/* Franja oscura full-width: separa con fuerza el footer del panel claro */
+/* EL FOOTER (FRANJA OSCURA) */
 .site-footer {
   background: var(--ink);
   color: var(--paper);
@@ -549,7 +504,7 @@ body {
   letter-spacing: -0.01em;
   color: var(--paper);
 }
-/* Kicker en el ACENTO coral: el toque de color que pediste */
+/* EL KICKER VA EN CORAL PARA QUE RESALTE */
 .footer-kicker {
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -557,7 +512,6 @@ body {
   letter-spacing: 0.14em;
   color: var(--accent);
 }
-/* Etiquetas (Secciones / Integrantes) tenues sobre el fondo oscuro */
 .footer-label {
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -565,7 +519,7 @@ body {
   letter-spacing: 0.14em;
   color: var(--on-ink-muted);
 }
-/* Enlaces de navegación del footer (los activa el JS, igual que las tabs) */
+/* LOS LINKS DEL FOOTER (LOS MANEJA EL JS IGUAL QUE LAS TABS) */
 .footer-nav .foot-link {
   font-size: 0.85rem;
   color: var(--on-ink-muted);
@@ -579,9 +533,7 @@ body {
 .footer-team { text-align: right; }
 .footer-names { font-size: 0.88rem; color: var(--paper); max-width: 34ch; }
 
-/* ============================================================
-   12) RESPONSIVE (mobile-first friendly)
-   ============================================================ */
+/* PARA QUE SE VEA BIEN EN EL CELU */
 @media (max-width: 640px) {
   .page-title { font-size: 1.7rem; }
   .page-head { flex-direction: column; align-items: flex-start; }

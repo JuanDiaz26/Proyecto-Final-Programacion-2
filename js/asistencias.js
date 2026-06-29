@@ -1,37 +1,23 @@
-// ============================================================
-//  ASISTENCIAS (asistencias.html)
-//  CRUD de las asistencias del empleado elegido en empleados.html.
-//  El id del empleado llega por localStorage.
-//  Las funciones API, fechaHoyISO() y manejarError() viven en
-//  js/utils.js (se carga antes que este archivo).
-// ============================================================
+// ASISTENCIAS (ASISTENCIAS.HTML)
+// EL ID DEL EMPLEADO LLEGA POR LOCALSTORAGE
 
-// Leemos el empleado que se guardó en la página anterior
 const empleadoId = localStorage.getItem("empleadoId");
 
-// Elementos del HTML
 const listaAsistencias = document.getElementById("listaAsistencias");
 const botonRegistrar = document.getElementById("botonRegistrar");
 const tituloEmpleado = document.getElementById("tituloEmpleado");
 const botonVolver = document.getElementById("botonVolver");
 
-// Los tres estados posibles de una asistencia
+// LOS 3 ESTADOS POSIBLES
 const ESTADOS = ["Presente", "Ausente", "Tardanza"];
 
-// Cuando carga la página, arrancamos
 document.addEventListener("DOMContentLoaded", iniciar);
-
-// El botón registra una asistencia nueva (con la fecha de hoy)
 botonRegistrar.addEventListener("click", crearAsistencia);
 
-// El botón "Volver" lleva a la lista de empleados
 botonVolver.addEventListener("click", () => {
   window.location.href = "empleados.html";
 });
 
-// ------------------------------------------------------------
-// INICIAR: valida que haya un empleado elegido y carga datos
-// ------------------------------------------------------------
 async function iniciar() {
   if (!empleadoId) {
     tituloEmpleado.textContent = "No se seleccionó ningún empleado.";
@@ -41,9 +27,7 @@ async function iniciar() {
   await cargarAsistencias();
 }
 
-// ------------------------------------------------------------
-// Muestra el nombre del empleado actual en el título
-// ------------------------------------------------------------
+// PONE EL NOMBRE DEL EMPLEADO EN EL TITULO
 async function mostrarNombreEmpleado() {
   try {
     const respuesta = await axios.get(`${API}/empleados/${empleadoId}`);
@@ -53,23 +37,18 @@ async function mostrarNombreEmpleado() {
   }
 }
 
-// ------------------------------------------------------------
-// LEER: trae las asistencias del empleado, las ordena de la
-// más reciente a la más antigua, y las dibuja.
-// ------------------------------------------------------------
+// LEER: TRAIGO LAS ASISTENCIAS Y LAS ORDENO DE LA MAS NUEVA A LA MAS VIEJA
 async function cargarAsistencias() {
   try {
     const respuesta = await axios.get(`${API}/asistencias?empleadoId=${empleadoId}`);
     const asistencias = respuesta.data;
 
-    // Ordenamos por FECHA de más reciente a más antigua. Como la fecha está
-    // en formato ISO (AAAA-MM-DD), comparar los textos ya da el orden cronológico.
-    // Si hay varias del mismo día, desempata el id (la última cargada primero).
+    // ORDENO POR FECHA. COMO ESTA EN ISO (AAAA-MM-DD) COMPARANDO EL TEXTO YA QUEDA BIEN
+    // SI HAY VARIAS DEL MISMO DIA, DESEMPATA EL ID
     asistencias.sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id);
 
     listaAsistencias.innerHTML = "";
 
-    // Si no hay asistencias, avisamos y cortamos
     if (asistencias.length === 0) {
       listaAsistencias.innerHTML =
         '<div class="empty">Sin asistencias registradas. Usá el botón “Registrar hoy”.</div>';
@@ -84,25 +63,22 @@ async function cargarAsistencias() {
   }
 }
 
-// ------------------------------------------------------------
-// RENDERIZAR: arma en el DOM la fila de UNA asistencia
-// ------------------------------------------------------------
+// RENDERIZAR: ARMO LA FILA DE UNA ASISTENCIA
 function renderizarAsistencia(asistencia) {
-  // Sufijo en minúscula para las clases de color (is-presente, etc.)
+  // ARMO LA CLASE DE COLOR DESDE EL ESTADO (Presente -> is-presente)
   const claseColor = "is-" + asistencia.estado.toLowerCase();
 
   const item = document.createElement("div");
   item.className = "row-item";
 
-  // Lado izquierdo: marcador de estado (cuadradito + texto SIEMPRE visible) + fecha
   const izquierda = document.createElement("div");
   izquierda.className = "row-left";
 
-  // Cuadradito coloreado por estado (--ink / --muted / --accent vía CSS)
+  // EL CUADRADITO DE COLOR SEGUN EL ESTADO
   const marca = document.createElement("span");
   marca.className = "row-icon " + claseColor;
 
-  // Texto del estado, siempre visible (accesibilidad: no dependemos solo del color)
+  // EL TEXTO DEL ESTADO SIEMPRE VISIBLE (NO TODOS DISTINGUEN EL COLOR)
   const estadoTexto = document.createElement("span");
   estadoTexto.className = "row-state " + claseColor;
   estadoTexto.textContent = asistencia.estado;
@@ -115,26 +91,23 @@ function renderizarAsistencia(asistencia) {
   izquierda.appendChild(estadoTexto);
   izquierda.appendChild(fecha);
 
-  // Lado derecho: selector de estado + botón eliminar
   const derecha = document.createElement("div");
   derecha.className = "row-right";
 
-  // Selector de estado: al cambiarlo, se guarda con PATCH
+  // SELECT DE ESTADO: AL CAMBIARLO SE GUARDA SOLO CON PATCH
   const select = document.createElement("select");
   select.className = "status " + claseColor;
   ESTADOS.forEach((estado) => {
     const opcion = document.createElement("option");
     opcion.value = estado;
     opcion.textContent = estado;
-    // Dejamos seleccionado el estado actual de la asistencia
     if (estado === asistencia.estado) {
-      opcion.selected = true;
+      opcion.selected = true; // DEJO ELEGIDO EL ESTADO ACTUAL
     }
     select.appendChild(opcion);
   });
   select.addEventListener("change", () => editarAsistencia(asistencia.id, select.value));
 
-  // Botón "Eliminar"
   const eliminarBtn = document.createElement("button");
   eliminarBtn.className = "button danger small";
   eliminarBtn.textContent = "Eliminar";
@@ -148,13 +121,11 @@ function renderizarAsistencia(asistencia) {
   listaAsistencias.appendChild(item);
 }
 
-// ------------------------------------------------------------
-// CREAR: registra una asistencia con la fecha de hoy (POST)
-// ------------------------------------------------------------
+// CREAR (POST) - ABRO EL MODAL (LA VENTANITA) PARA ELEGIR FECHA Y ESTADO
 async function crearAsistencia() {
   const hoy = fechaHoyISO();
 
-  // Modal: elegimos la FECHA (por defecto hoy, sin permitir futuro) y el ESTADO.
+  // EL MAX: HOY ES PARA QUE EL CALENDARIO NO DEJE ELEGIR DIAS FUTUROS
   const datos = await abrirModal("Registrar asistencia", [
     { name: "fecha", label: "Fecha", type: "date", value: hoy, max: hoy },
     {
@@ -165,9 +136,8 @@ async function crearAsistencia() {
       options: ESTADOS.map((e) => ({ value: e, label: e })),
     },
   ]);
-  if (!datos) return; // el usuario canceló
+  if (!datos) return; // CANCELO
 
-  // Validación: la fecha es obligatoria y no puede ser futura
   if (!datos.fecha) {
     alert("Elegí una fecha.");
     return;
@@ -178,7 +148,7 @@ async function crearAsistencia() {
   }
 
   try {
-    // No duplicar: que no haya ya una asistencia de este empleado en esa fecha
+    // NO DEJO CARGAR DOS VECES EL MISMO DIA
     const mismaFecha = (
       await axios.get(`${API}/asistencias?empleadoId=${empleadoId}&fecha=${datos.fecha}`)
     ).data;
@@ -187,7 +157,7 @@ async function crearAsistencia() {
       return;
     }
 
-    // Aviso (NO bloqueo): si estás cargando HOY y falta el día anterior (ayer)
+    // SI CARGO HOY Y FALTA AYER, AVISO (PERO NO TRABO)
     if (datos.fecha === hoy) {
       const ayer = fechaRelativaISO(-1);
       const deAyer = (
@@ -208,16 +178,13 @@ async function crearAsistencia() {
     };
     await axios.post(`${API}/asistencias`, nueva);
 
-    // Volvemos a dibujar todo para que quede ordenado por fecha
     cargarAsistencias();
   } catch (error) {
     manejarError(error, "registrar la asistencia");
   }
 }
 
-// ------------------------------------------------------------
-// ACTUALIZAR: cambia el estado de una asistencia (PATCH)
-// ------------------------------------------------------------
+// ACTUALIZAR EL ESTADO (PATCH)
 async function editarAsistencia(id, nuevoEstado) {
   try {
     await axios.patch(`${API}/asistencias/${id}`, { estado: nuevoEstado });
@@ -227,9 +194,7 @@ async function editarAsistencia(id, nuevoEstado) {
   }
 }
 
-// ------------------------------------------------------------
-// ELIMINAR: borra una sola asistencia (DELETE)
-// ------------------------------------------------------------
+// ELIMINAR UNA SOLA ASISTENCIA (DELETE) - NO TIENE HIJOS ASI QUE NO HAY CASCADA
 async function eliminarAsistencia(id) {
   if (!confirm("¿Eliminar esta asistencia?")) {
     return;
