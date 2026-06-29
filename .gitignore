@@ -6,3 +6,6 @@ node_modules/
 Thumbs.db
 .vscode/
 .claude/
+
+# Material de estudio interno (no se entrega al profesor)
+GUIA-DEFENSA.md

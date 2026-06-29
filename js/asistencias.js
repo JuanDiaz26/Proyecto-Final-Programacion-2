@@ -165,7 +165,6 @@ async function crearAsistencia() {
       options: ESTADOS.map((e) => ({ value: e, label: e })),
     },
   ]);
-
   if (!datos) return; // el usuario canceló
 
   // Validación: la fecha es obligatoria y no puede ser futura
